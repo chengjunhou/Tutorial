@@ -45,7 +45,7 @@ LASSO回归$\alpha=1$，Ridge回归$\alpha=0$，一般Elastic Net模型$0<\alpha
 
 我们从最简单的线性回归(Linear Regression)开始了解如何使用**glmnet**拟合LASSO回归模型，所以此时的连接函数(Link Function)就是恒等，或者说没有连接函数，而误差的函数分布是正态分布。
 
-首先我们装载**glmnet** package，然后读入试验用数据"LinearExample.RData"，[下载链接](https://github.com/cran/glmnet/blob/master/data/QuickStartExample.RData):
+首先我们装载**glmnet** package，然后读入试验用数据"LinearExample.RData"，[下载链接](https://github.com/chengjunhou/Tutorial/blob/master/LASSO/LinearExample.RData):
 
 ```{r, message=FALSE, warning=FALSE}
 library(glmnet)
@@ -141,7 +141,7 @@ plot(pfit, xvar="lambda", label = TRUE)
 
 当面对离散因变量时，特别是面对二元因变量(Yes/No)这样的问题时，Logistic回归被广泛使用。 此时我们用`family="binomial"`来应对这种目标因变量是二项分布(binomial)的情况。
 
-试验用数据"LogisticExample.RData"里储存了$100 \times 30$的矩阵$x$，和元素是0/1长度是100的向量$y$，[下载链接](https://github.com/cran/glmnet/blob/master/data/BinomialExample.RData):
+试验用数据"LogisticExample.RData"里储存了$100 \times 30$的矩阵$x$，和元素是0/1长度是100的向量$y$，[下载链接](https://github.com/chengjunhou/Tutorial/blob/master/LASSO/LogisticExample.RData):
 
 ```{r}
 load("LogisticExample.RData")
