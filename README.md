@@ -1,2 +1,3 @@
-# OSU-Informs-Tutorial
-The Ohio State University, Institute for Operations Research and Management Science (INFORMS) student chapter 
+# Tutorial
+
+This repo contains raw Markdown file for each topic.    
