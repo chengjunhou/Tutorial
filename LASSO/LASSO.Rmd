@@ -56,16 +56,19 @@ LASSO回归 $\alpha=1$，Ridge回归 $\alpha=0$，一般Elastic Net模型 $0<\al
 
 ## 线性回归 {#linear}
 
-我们从最简单的线性回归(Linear Regression)开始了解如何使用**glmnet**拟合LASSO回归模型，所以此时的连接函数(Link Function)就是恒等，或者说没有连接函数，而误差的函数分布是正态分布。
+我们从最简单的线性回归（Linear Regression）开始了解如何使用 **glmnet** 拟合LASSO回归模型，
+所以此时的连接函数（link function）就是恒等，或者说没有连接函数，而误差的函数分布是正态分布。
 
-首先我们装载**glmnet** package，然后读入试验用数据"LinearExample.RData"，[下载链接](https://github.com/chengjunhou/Tutorial/blob/master/LASSO/LinearExample.RData):
+首先我们装载 **glmnet** package，然后读入试验用数据"LinearExample.RData"，
+[下载链接](https://github.com/chengjunhou/Tutorial/blob/master/LASSO/LinearExample.RData):
 
 ```{r, message=FALSE, warning=FALSE}
 library(glmnet)
 load("LinearExample.RData")
 ```
 
-之后在workspace里我们会得到一个$100 \times 20$的矩阵$x$作为输入自变量，$100 \times 1$的矩阵$y$作为目标因变量。 矩阵$x$代表了我们有100个数据点，每个数据点有20个统计量(feature)。现在我们就可以用函数`glmnet()`建模了:
+之后在workspace里我们会得到一个 $100 \times 20$ 的矩阵 $x$ 作为输入自变量，$100 \times 1$ 的矩阵 $y$ 作为目标因变量。
+矩阵 $x$ 代表了我们有100个数据点，每个数据点有20个统计量（feature）。现在我们就可以用函数 `glmnet()` 建模了:
 
 ```{r}
 fit = glmnet(x, y, family="gaussian", nlambda=50, alpha=1)
@@ -75,16 +78,16 @@ fit = glmnet(x, y, family="gaussian", nlambda=50, alpha=1)
 
 觉得意犹未尽的朋友可以接着看下面的内容。
 
-参数`family`规定了回归模型的类型:
+参数`family`规定了回归模型的类型:  
+- `family="gaussian"` 适用于一维连续因变量（univariate）
+- `family="mgaussian"` 适用于多维连续因变量（multivariate）
+- `family="poisson"` 适用于非负次数因变量（count）
+- `family="binomial"` 适用于二元离散因变量（binary）
+- `family="multinomial"` 适用于多元离散因变量（category）
 
-- `family="gaussian"`适用于一维连续因变量(univariate)
-- `family="mgaussian"`适用于多维连续因变量(multivariate)
-- `family="poisson"`适用于非负次数因变量(count)
-- `family="binomial"`适用于二元离散因变量(binary)
-- `family="multinomial"`适用于多元离散因变量(category)
-
-参数`nlambda=50`让算法自动挑选50个不同的$\lambda$值，拟合出50个系数不同的模型。 `alpha=1`输入$\alpha$值，1是它的默认值。
-值得注意的是，**glmnet**只能接受数值矩阵作为模型输入，如果自变量中有离散变量的话，需要把这一列离散变量转化为几列只含有0和1的向量，这个过程叫做One Hot Encoding。通过下面这个小例子，你可以了解One Hot Encoding的原理以及方法:
+参数 `nlambda=50` 让算法自动挑选50个不同的 $\lambda$ 值，拟合出50个系数不同的模型。 `alpha=1` 输入 $\alpha$ 值，1是它的默认值。
+值得注意的是，**glmnet** 只能接受数值矩阵作为模型输入，如果自变量中有离散变量的话，需要把这一列离散变量转化为几列只含有0和1的向量，
+这个过程叫做One Hot Encoding。通过下面这个小例子，你可以了解One Hot Encoding的原理以及方法:
 
 ```{r}
 df=data.frame(Factor=factor(1:5), Character=c("a","a","b","b","c"),
@@ -92,52 +95,60 @@ df=data.frame(Factor=factor(1:5), Character=c("a","a","b","b","c"),
 model.matrix(~., df)
 ```
 
-除此之外，如果我们想让模型的变量系数都在同一个数量级上，就需要在拟合前对数据的每一列进行标准化(standardize)，即对每个列元素减去这一列的均值然后除以这一列的标准差。这一过程可以通过在`glmnet()`函数中添加参数`standardize = TRUE`来实现。
+除此之外，如果我们想让模型的变量系数都在同一个数量级上，就需要在拟合前对数据的每一列进行标准化（standardize），
+即对每个列元素减去这一列的均值然后除以这一列的标准差。这一过程可以通过在 `glmnet()` 函数中添加参数 `standardize = TRUE` 来实现。
 
-回到我们的拟合结果`fit`。作为一个R对象，我们可以把它当作很多函数的输入。比如说，我们可以查看详细的拟合结果:
+回到我们的拟合结果 `fit`。作为一个R对象，我们可以把它当作很多函数的输入。比如说，我们可以查看详细的拟合结果:
+
 ```{r}
 print(fit)
 ```
 
-每一行代表了一个模型。列`Df`是自由度，代表了非零的线性模型拟合系数的个数。 列`%Dev`代表了由模型解释的残差的比例，对于线性模型来说就是模型拟合的$R^2$(R-squred)。它在0和1之间，越接近1说明模型的表现越好，如果是0，说明模型的预测结果还不如直接把因变量的均值作为预测值来的有效。 列`lambda`当然就是每个模型对应的$\lambda$值。 我们可以看到，随着`lambda`的变小，越来越多的自变量被模型接纳进来，`%Dev`也越来越大。 第31行时，模型包含了所有20个自变量，`%Dev`也在0.91以上。
-其实我们本应该得到50个不同的模型，但是连续几个`%Dev`变化很小时`glmnet()`会自动停止。
-分析模型输出我们可以看到当`Df`大于9的时候，`%Dev`就达到了0.9，而且继续缩小`lambda`，即增加更多的自变量到模型中，也不能显著提高`%Dev`。
-所以我们可以认为当$\lambda略微小于0.1时，得到的包含9个自变量的模型，可以相当不错的描述这组数据。
+每一行代表了一个模型。列 `Df` 是自由度，代表了非零的线性模型拟合系数的个数。
+列 `%Dev` 代表了由模型解释的残差的比例，对于线性模型来说就是模型拟合的 $R^2$(R-squred)。
+它在0和1之间，越接近1说明模型的表现越好，如果是0，说明模型的预测结果还不如直接把因变量的均值作为预测值来的有效。
+列 `lambda` 当然就是每个模型对应的 $\lambda$ 值。我们可以看到，随着 `lambda` 的变小，越来越多的自变量被模型接纳进来，`%Dev` 也越来越大。 
+第31行时，模型包含了所有20个自变量，`%Dev` 也在0.91以上。
+其实我们本应该得到50个不同的模型，但是连续几个 `%Dev` 变化很小时 `glmnet()` 会自动停止。
+分析模型输出我们可以看到当 `Df` 大于9的时候，`%Dev` 就达到了0.9，而且继续缩小 `lambda`，即增加更多的自变量到模型中，也不能显著提高 `%Dev`。
+所以我们可以认为当 $\lambda$ 接近0.1时，得到的包含9个自变量的模型，可以相当不错的描述这组数据。
 
-我们也可以通过指定$\lambda$值，抓取出某一个模型的系数:
+我们也可以通过指定 $\lambda$ 值，抓取出某一个模型的系数:
 
 ```{r}
 coef(fit, s=c(fit$lambda[16],0.1))
 ```
 
-需要注意的是，我们把指定的$\lambda$值放在`s=`里，因为在后面Logistic回归的部分我们还用到了`s="lambda.min"`的方法指定$\lambda$的值。
-当指定的$\lambda$值不在`fit$lambda`中时，对应的模型系数由Linear Interpolation近似得到。
+需要注意的是，我们把指定的 $\lambda$ 值放在 `s=` 里，因为在后面Logistic回归的部分我们还用到了 `s="lambda.min"` 的方法指定 $\lambda$ 的值。
+当指定的 $\lambda$ 值不在 `fit$lambda` 中时，对应的模型系数由Linear Interpolation近似得到。
 我们还可以做图观察这50个模型的系数是如何变化的:
 
 ```{r}
 plot(fit, xvar="lambda", label=TRUE)
 ```
 
-图中的每一条曲线代表了每一个自变量系数的变化轨迹，纵坐标是系数的值，下横坐标是$\log(\lambda)$，上横坐标是此时模型中非零系数的个数。
-我们可以看到，黑线代表的自变量1在$\lambda$值很大时就有非零的系数，然后随着$\lambda$值变小不断变大。 我们还可以尝试用`xvar=“norm”`和`xvar=“dev”`切换下横坐标。
+图中的每一条曲线代表了每一个自变量系数的变化轨迹，纵坐标是系数的值，下横坐标是 $\log(\lambda)$，上横坐标是此时模型中非零系数的个数。
+我们可以看到，黑线代表的自变量1在 $\lambda$ 值很大时就有非零的系数，然后随着 $\lambda$ 值变小不断变大。
+我们还可以尝试用 `xvar="norm"` 和 `xvar="dev"` 切换下横坐标。
 
-接下来当然就是指定$\lambda$值，然后对新数据进行预测了:
+接下来当然就是指定 $\lambda$ 值，然后对新数据进行预测了:
 
 ```{r}
 nx = matrix(rnorm(5*20),5,20)
 predict(fit, newx=nx, s=c(fit$lambda[16],0.1))
 ```
 
-下面我们再来看几个`glmnet()`函数的其他功能。
-使用`upper.limits`和`lower.limits`，我们可以指定模型系数的上限与下限:
+下面我们再来看几个 `glmnet()` 函数的其他功能。
+使用 `upper.limits` 和 `lower.limits`，我们可以指定模型系数的上限与下限:
 
 ```{r}
 lfit=glmnet(x, y, lower=-.7, upper=.5)
 plot(lfit, xvar="lambda", label=TRUE)
 ```
 
-上限与下限可以是一个值，也可以是一个向量，向量的每一个值作为对应自变量的参数上下限。 有时，在建模之前我们就想凸显某几个自变量的作用，此时我们可以调整惩罚参数。
-每个自变量的默认惩罚参数是1，把其中的某几个量设为0将使得相应的自变量不遭受任何惩罚:
+上限与下限可以是一个值，也可以是一个向量，向量的每一个值作为对应自变量的参数上下限。
+有时，在建模之前我们就想凸显某几个自变量的作用，此时我们可以调整惩罚参数。
+每个自变量的默认惩罚参数是1，把其中的某几个量设为0将使得相应的自变量不遭受任何惩罚：
 
 ```{r}
 p.fac = rep(1, 20)
@@ -146,7 +157,7 @@ pfit = glmnet(x, y, penalty.factor=p.fac)
 plot(pfit, xvar="lambda", label = TRUE)
 ```
 
-我们可以看到，自变量5/10/15的系数一直不为0，而其他的参数系数绝对值随着$\lambda$值变小而变大。
+我们可以看到，自变量5/10/15的系数一直不为0，而其他的参数系数绝对值随着 $\lambda$ 值变小而变大。
 
 
 
