@@ -139,7 +139,7 @@ plot(fit, xvar="lambda", label=TRUE)
 我们可以看到，黑线代表的自变量1在 $\lambda$ 值很大时就有非零的系数，然后随着 $\lambda$ 值变小不断变大。
 我们还可以尝试用 `xvar="norm"` 和 `xvar="dev"` 切换下横坐标。
 
-接下来当然就是指定 $\lambda$ 值，然后对新数据进行预测了:
+接下来当然就是指定 $\lambda$ 值，然后对新数据进行预测了：
 
 ```{r}
 nx = matrix(rnorm(5*20),5,20)
@@ -147,7 +147,7 @@ predict(fit, newx=nx, s=c(fit$lambda[16],0.1))
 ```
 
 下面我们再来看几个 `glmnet()` 函数的其他功能。
-使用 `upper.limits` 和 `lower.limits`，我们可以指定模型系数的上限与下限:
+使用 `upper.limits` 和 `lower.limits`，我们可以指定模型系数的上限与下限：
 
 ```{r}
 lfit=glmnet(x, y, lower=-.7, upper=.5)
@@ -264,7 +264,7 @@ predict(cvfit, newx=x[1:5,], type="response", s="lambda.1se")
 以此最小化实际因变量 $y$ 与预测应变量 $\beta x$ 之间的误差平方和。
 而线性Elastic Net与线性回归的不同之处就在于有无第二行的这个约束，线性Elastic Net希望得到的自变量系数是在由 $t$ 控制的一个范围内。
 这一约束也是Elastic Net模型能进行复杂度调整，LASSO回归能进行变量筛选和复杂度调整的原因。
-我们可以通过下面的这张图来解释这个道理:
+我们可以通过下面的这张图来解释这个道理：
 
 <div style="width:500px">
 ![](regularization.png)
