@@ -194,11 +194,11 @@ cvfit = cv.glmnet(x, y, family = "binomial", type.measure = "class")
 
 这里的 `type.measure` 是用来指定交叉验证选取模型时希望最小化的目标参量，对于Logistic回归有以下几种选择：
 
-- `type.measure=deviance` 使用deviance，即-2倍的Log-likelihood
-- `type.measure=mse` 使用拟合因变量与实际应变量的mean squred error
-- `type.measure=mae` 使用mean absolute error
-- `type.measure=class` 使用模型分类的错误率（missclassification error）
-- `type.measure=auc` 使用area under ROC curve，是现在最流行的综合考量模型性能的一种参数
+- `type.measure="deviance"` 使用deviance，即-2倍的Log-likelihood
+- `type.measure="mse"` 使用拟合因变量与实际应变量的mean squred error
+- `type.measure="mae"` 使用mean absolute error
+- `type.measure="class"` 使用模型分类的错误率（missclassification error）
+- `type.measure="auc"` 使用area under ROC curve，是现在最流行的综合考量模型性能的一种参数
 
 除此之外，在 `cv.glmnet()` 里我们还可以用 `nfolds` 指定fold数，或者用 `foldid` 指定每个fold的内容。
 因为每个fold间的计算是独立的，我们还可以考虑运用并行计算来提高运算效率，使用 `parallel=TRUE` 可以开启这个功能。
@@ -243,11 +243,11 @@ predict(cvfit, newx=x[1:5,], type="response", s="lambda.1se")
 
 这里的 `type` 有以下几种选择：
 
-- `type=link` 给出线性预测值，即进行Logit变换之前的值
-- `type=response` 给出概率预测值，即进行Logit变换之后的值
-- `type=class` 给出0/1预测值
-- `type=coefficients` 罗列出给定$\lambda$值时的模型系数
-- `type=coefficients` 罗列出给定$\lambda$值时，不为零模型系数的下标
+- `type="link"` 给出线性预测值，即进行Logit变换之前的值
+- `type="response"` 给出概率预测值，即进行Logit变换之后的值
+- `type="class"` 给出0/1预测值
+- `type="coefficients"` 罗列出给定$\lambda$值时的模型系数
+- `type="nonzero"` 罗列出给定$\lambda$值时，不为零模型系数的下标
 
 另外，当已有了一个模型之后，我们又得到了几个新的自变量，如果想知道这些新变量能否在第一个模型的基础上提高模型性能，
 可以把第一个模型的预测因变量作为一个向量放到函数选项 `offset`中，再用 `glmnet` 或者 `cv.glmnet` 进行拟合。
