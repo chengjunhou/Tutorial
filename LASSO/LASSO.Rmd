@@ -142,6 +142,7 @@ plot(fit, xvar="lambda", label=TRUE)
 接下来当然就是指定 $\lambda$ 值，然后对新数据进行预测了：
 
 ```{r}
+set.seed(91)
 nx = matrix(rnorm(5*20),5,20)
 predict(fit, newx=nx, s=c(fit$lambda[16],0.1))
 ```
@@ -187,6 +188,7 @@ load("LogisticExample.RData")
 所以只要条件允许，我们都会用交叉验证（cross validation）拟合进而选取模型，同时对模型的性能有一个更准确的估计。
 
 ```{r}
+set.seed(91)
 cvfit = cv.glmnet(x, y, family = "binomial", type.measure = "class")
 ```
 
@@ -293,6 +295,7 @@ predict(cvfit, newx=x[1:5,], type="response", s="lambda.1se")
 ```{r}
 # CV for 11 alpha value
 for (i in 0:10) {
+  set.seed(91)
   assign(paste("cvfit", i, sep=""), 
          cv.glmnet(x, y, family="binomial", type.measure="class", alpha=i/10))
 }
