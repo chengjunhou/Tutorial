@@ -8,16 +8,20 @@ output:
 ---
 
 ---------------
-**作者简介：**  
+
+**作者简介：**
+
 侯澄钧，俄亥俄州立大学运筹学博士，目前在美国从事财产事故险（Property & Casualty）领域的保险产品开发，
 涉及数据分析，统计建模，产品算法优化等方面的工作。
 
-**目录：**  
+**目录：**
+
 - [模型简介](#intro)
 - [线性回归](#linear)
 - [Logistic回归](#logis)
 - [Elstic Net模型家族简介](#elnet)
 - [学习资料](#refer)
+
 ---------------
 
 
@@ -63,7 +67,7 @@ LASSO回归 $\alpha=1$，Ridge回归 $\alpha=0$，一般Elastic Net模型 $0<\al
 所以此时的连接函数（link function）就是恒等，或者说没有连接函数，而误差的函数分布是正态分布。
 
 首先我们装载 **glmnet** package，然后读入试验用数据"LinearExample.RData"，
-[下载链接](https://github.com/chengjunhou/Tutorial/blob/master/LASSO/LinearExample.RData):
+[下载链接](https://github.com/chengjunhou/Tutorial/blob/master/LASSO/LinearExample.RData)：
 
 ```{r, message=FALSE, warning=FALSE}
 library(glmnet)
@@ -71,7 +75,7 @@ load("LinearExample.RData")
 ```
 
 之后在workspace里我们会得到一个 $100 \times 20$ 的矩阵 $x$ 作为输入自变量，$100 \times 1$ 的矩阵 $y$ 作为目标因变量。
-矩阵 $x$ 代表了我们有100个数据点，每个数据点有20个统计量（feature）。现在我们就可以用函数 `glmnet()` 建模了:
+矩阵 $x$ 代表了我们有100个数据点，每个数据点有20个统计量（feature）。现在我们就可以用函数 `glmnet()` 建模了：
 
 ```{r}
 fit = glmnet(x, y, family="gaussian", nlambda=50, alpha=1)
@@ -81,7 +85,8 @@ fit = glmnet(x, y, family="gaussian", nlambda=50, alpha=1)
 
 觉得意犹未尽的朋友可以接着看下面的内容。
 
-参数`family`规定了回归模型的类型:  
+参数`family`规定了回归模型的类型：
+
 - `family="gaussian"` 适用于一维连续因变量（univariate）
 - `family="mgaussian"` 适用于多维连续因变量（multivariate）
 - `family="poisson"` 适用于非负次数因变量（count）
@@ -185,7 +190,8 @@ load("LogisticExample.RData")
 cvfit = cv.glmnet(x, y, family = "binomial", type.measure = "class")
 ```
 
-这里的 `type.measure` 是用来指定交叉验证选取模型时希望最小化的目标参量，对于Logistic回归有以下几种选择：  
+这里的 `type.measure` 是用来指定交叉验证选取模型时希望最小化的目标参量，对于Logistic回归有以下几种选择：
+
 - `type.measure=deviance` 使用deviance，即-2倍的Log-likelihood
 - `type.measure=mse` 使用拟合因变量与实际应变量的mean squred error
 - `type.measure=mae` 使用mean absolute error
