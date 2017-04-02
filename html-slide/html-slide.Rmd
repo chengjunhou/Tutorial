@@ -1,0 +1,182 @@
+---
+title: "HTML Slides Demo"
+author: "Chengjun Hou"
+date: "February 9, 2016"
+output:
+  ioslides_presentation:
+    logo: HT.png
+    widescreen: false
+    smaller: false
+    transition: faster
+---
+
+
+
+# Interactive Map
+
+## Leaflet Demo
+
+This is an R leaflet library example.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(maps)
+library(leaflet)
+ 
+mapStates = map("state", fill = TRUE, plot = FALSE)
+mapStates$value = runif(63,0,1)
+pal =  colorNumeric("YlOrRd", domain = mapStates$value)
+ 
+cities <- read.csv(textConnection("
+City,Lat,Long,Pop
+Boston,42.3601,-71.0589,645966
+Hartford,41.7627,-72.6743,125017
+New York City,40.7127,-74.0059,8406000
+Philadelphia,39.9500,-75.1667,1553000
+Pittsburgh,40.4397,-79.9764,305841
+Providence,41.8236,-71.4222,177994
+"))
+ 
+EX1 = leaflet(data = mapStates,780,420) %>%
+  addProviderTiles(providers$CartoDB.Positron, group="View 1") %>%
+  addProviderTiles("Stamen.TonerLite", group = "View 2") %>%
+  addProviderTiles("Thunderforest.Landscape", group = "View 3") %>%
+ 
+  addPolygons(fillColor = ~pal(value), stroke = FALSE, group = "AARP IR") %>%
+  addCircles(lng=cities$Long, lat=cities$Lat, weight=1, radius=sqrt(cities$Pop)*30,
+             popup = cities$City, group = "City Popul.") %>%
+ 
+  addLayersControl(
+    baseGroups = c("View 1", "View 2", "View 3"),
+    overlayGroups = c("AARP IR", "City Popul."),
+    options = layersControlOptions(collapsed = TRUE)
+  ) %>%
+  addLegend("bottomleft", pal = pal, values = ~value,
+          title = "AARP IR", opacity = .5
+  ) %>%
+  hideGroup("City Popul.")
+ 
+EX1
+```
+
+
+
+# Interactive Visualization
+
+## Highcharts Demo
+
+This is an R highcharter library example.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(highcharter)
+data(citytemp)
+CT <- highchart(width=780, height=400) %>%
+  hc_xAxis(categories = citytemp$month) %>%
+  hc_add_series(name="Tokyo", data=citytemp$tokyo) %>%
+  hc_add_series(name="London", data=citytemp$london) %>%
+  hc_add_series(name="Berlin", data=citytemp$berlin) %>%
+  hc_add_series(name="NY", data=citytemp$new_york) %>%
+  hc_yAxis(title = list(text = "Average Temperature")) %>%
+  hc_chart(type="column", options3d=list(enabled=TRUE, beta=15, alpha=15))
+CT
+```
+
+
+## Highcharts Demo
+
+This is an R highcharter library example.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+AI <- highchart(width=780, height=400) %>% 
+  hc_title(text = "Motor Trend Car Road Tests") %>% 
+  hc_add_series_scatter(mtcars$hp, mtcars$mpg, mtcars$wt, mtcars$drat,
+                       rownames(mtcars),
+                       dataLabels = list(enabled = TRUE, format = "{point.label}")) %>% 
+  hc_chart(zoomType = "xy") %>% 
+  hc_yAxis(title = list(text = "MPG")) %>%
+  hc_xAxis(title = list(text = "Horsepower")) %>%
+  hc_tooltip(useHTML = TRUE,
+             headerFormat = "<table>",
+             pointFormat = paste("<tr><th colspan=\"1\"><b>{point.label}</b></th></tr>",
+                                 "<tr><th>Horsepower</th><td>{point.x} hp</td></tr>",
+                                 "<tr><th>MPG</th><td>{point.y} mpg</td></tr>",
+                                 "<tr><th>Weight(size)</th><td>{point.z} lb/1000</td></tr>",
+                                 "<tr><th>Drat(color)</th><td>{point.valuecolor} </td></tr>"),
+             footerFormat = "</table>")
+AI
+```
+
+## Dygraphs Demo
+
+This is an R dygraphs library example.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(dygraphs)
+library(xts)
+data(economics, package = 'ggplot2')
+ecm = as.data.frame(economics[,c("date","psavert","uempmed")])
+ecm.ts = xts(ecm[,-1], order.by=ecm[,1])
+
+TS <- dygraph(ecm.ts, width=780, height=400,
+              main="US personal saving rate and median duration of unemployment") %>% 
+  dyRangeSelector() %>% dyLegend(width = 270) %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(2, "Set2"))
+TS
+```
+
+
+
+# Rmarkdown Basics
+
+## R Markdown - Paragraphs
+
+This an R Markdown presentation. 
+Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. 
+
+For more instructions see <http://rmarkdown.rstudio.com>.
+
+*This sentence is italic.*
+
+**This sentence is bold.**
+
+
+## R Markdown - Bullets
+
+- Bullet 1  
+    \- This could be a paragraph or subtitle.  
+    \- This could be a paragraph or subtitle.  
+    
+- Bullet 2
+
+- Bullet 3
+
+
+## R Markdown - Smaller Bullets {.smaller}
+
+- Bullet 1  
+    \- This could be a paragraph or subtitle.  
+    \- This could be a paragraph or subtitle.  
+    
+- Bullet 2
+
+- Bullet 3
+
+
+## R Markdown - Notes
+
+We defined the `add` function to compute the sum of two numbers.
+
+This is a code block.
+```
+This text is displayed verbatim / preformatted
+```
+
+
+## R Markdown - Equations {.smaller}
+
+In this paragraph we have some inline equation $a^2 + b^2$.
+
+This is a LaTex equation.
+$$ c^w_i[F(\lambda_r)-1] + c^m_iF(\lambda_i) + \frac {df_i^b(\lambda_i)} {d\lambda_i}			
+= (c^w_i + c^m_i) F(\lambda_i) - c^w_i + \frac {df_i^b(\lambda_i)} {d\lambda_i}. $$
+
+
