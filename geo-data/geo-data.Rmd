@@ -1,0 +1,117 @@
+---
+title: "Processing and Visualizing Spatial Data in R"
+author: "Chengjun Hou"
+date: "March 24, 2016"
+output:
+  html_document:
+    theme: cosmo
+---
+
+
+---------------
+
+This document covers the following items for working with spatial data in R:
+  
+- Get machine and data ready
+- Data structure of spatial polygons introduced by **sp**
+- Function `over()` for polygon overlays searching
+
+---------------
+
+
+
+## Get Machine and Data Ready 
+
+First, install R of course. Even better, download Rstudio <http://www.rstudio.com/>, 
+an incredibly efficient and easy to use interface for working with R.  
+
+R does not support working with spatial data straight out of the box 
+so there are a couple of packages that need to be downloaded to get R working with spatial data. 
+The two packages required are **sp** and **maptools**, and **leaflet** for cool visualization. 
+Use the following scripts to get the packages installed and loaded:
+```{r, eval=FALSE}
+install.packages(c("sp","maptools","leaflet"))
+```
+```{r, message=FALSE, warning=FALSE}
+library(sp)
+library(maptools)
+library(leaflet)
+```
+
+Now it's time to load the data. Setting up a working directory where the raw data sits is always the first step.
+Here we have two spatial data files that needed to be loaded into the memory from two different locations, 
+so function `setwd()` is called twice.
+```{r}
+setwd("D:/Workspace/Tutorial/geo_data")
+# load rain fall data of 20160101
+RainShapeFiles <- readShapePoly("VClimateRainfall20160101_CONUS.shp")
+# load US county data
+CountyShapeFiles <- readShapePoly("cb_2014_us_county_500k.shp")
+CountyShapeFiles$NAME <- as.character(CountyShapeFiles$NAME)
+```
+
+
+
+## Data Structure of Spatial Polygons
+
+`RainShapeFiles` and `CountyShapeFiles` are *SpatialPolygonsDataFrame* objects. 
+You can interpret this as the combination of polygon shape files and a data frame. 
+Each polygon shape file contains the boundary coordinates, 
+and the data frame contains other attributes attached to each polygon. 
+`RainShapeFiles` has 926 polygons and 9 attributes attached to each polygon.
+```{r}
+# dimension check
+dim(RainShapeFiles)
+# attribute names
+names(RainShapeFiles)
+```
+
+As a demo, here we see a region in the state of NY where it is raining.
+```{r}
+# selecting row 736 to 742 of RainShapeFiles
+NYRainShapeFiles <- RainShapeFiles[736:742,]
+# selecting counties from NY state
+NYCountyShapeFiles <- CountyShapeFiles[CountyShapeFiles$STATEFP==36, ]
+```
+
+Then we can have a quick visualization of this region in the state of NY.
+```{r}
+V3 = leaflet() %>% 
+  addProviderTiles("Stamen.TonerLite") %>%
+  addPolygons(data = NYCountyShapeFiles, popup=NYCountyShapeFiles$NAME,
+              fillColor = "green", fillOpacity = 0.2,
+              stroke = T, color="Black", weight=2, opacity=0.2) %>%
+  addPolygons(data = NYRainShapeFiles,
+              fillColor = "red", fillOpacity = 0.6,
+              stroke = T, color="Black", weight=1, opacity=0.1)
+V3
+```
+
+
+## Overlay Searching
+Numerical "map overlay" combines spatial features from one map layer 
+with the attribute (numerical) properties of another. 
+This vignette explains the R method `over()`, which provides a consistent way to retrieve indices or attributes
+from a given spatial object (map layer) at the locations of another spatial object.
+
+Given two geometries, A and B, command `over(A,B)` retrieves the geometry (location) 
+indices of B at the locations of A. In particular, 
+an integer vector of length 'length(A)' is returned, 
+with `NA` values for locations in A not matching with locations in B (e.g. those points outside a set of polygons).
+With this function, we can have a list of counties that interact with all raining polygons.
+```{r}
+OverlayIndex = !is.na(over(NYCountyShapeFiles, NYRainShapeFiles)[,1])
+NYCountyShapeFiles[["NAME"]][OverlayIndex]
+```
+
+Finally we can have a more detailed list of which counties are interacted with each polygon. 
+The data frame shown in between `[[1]]` and `[[2]]` contains attributes of the counties that interact 
+with the first raining polygon. And since the 4th polygon is in Lake Erie, 
+there is no interaction with any county.
+```{r}
+over(NYRainShapeFiles, NYCountyShapeFiles, returnList = TRUE)
+```
+
+
+
+---------------
