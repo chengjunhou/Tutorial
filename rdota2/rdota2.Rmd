@@ -167,7 +167,8 @@ match.multi <- get_match_history_by_sequence_num(start_at_match_seq_num=27045633
 c(match.multi$maches[[1]]$match_id, match.multi$maches[[10]]$match_id)
 ```
 
-其实还有一个 get 函数 `get_match_history()` 
+其实还有一个 get 函数 `get_match_history()` 可以通过输入不同的参数例如 game_mode 来筛选返回的比赛。
+但当我测试时，有些输入参数并没有正确的筛选比赛，而且返回的比赛信息太简略，缺少比赛胜负信息，我就没有用这个函数提取比赛数据。
 
 
 
@@ -218,7 +219,7 @@ mrd = rbind(MRD[[1]],MRD[[2]],MRD[[4]],MRD[[5]])
 ```
 
 
-
+## 建模及结果
 
 
 ## 附录
@@ -240,6 +241,7 @@ nnn <- 1000
 rrr <- 10
 #######################################
 
+ifelse(!dir.exists(paste0("M",mid.a)), dir.create(paste0("M",mid.a)), FALSE)
 
 M.a = get_match_details(match_id=mid.a)$content
 sid.a = M.a$match_seq_num
