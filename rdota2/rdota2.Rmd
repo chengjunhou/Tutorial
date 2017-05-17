@@ -21,12 +21,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Dota2 来源于暴雪魔兽争霸的一张自定义地图，又叫 RPG 图，就是由地图开发者在魔兽争霸这个游戏之上自己创建了一种玩法。
 这张地图的名字就叫做 Dota，Defense of the Ancient，被视为当下十分流行的MOBA类游戏的鼻祖。
-MOBA游戏的特点是，两队人马以摧毁对方大本营为目的互相厮杀，五个玩家组成一队，每个玩家从各具特色的一百多个英雄中选出一个，互相支援互相配合。一场比赛的用时大概在半小时到一小时之间，当然也有十分钟的短局，或者三四个小时的膀胱局。
+MOBA游戏的特点是，两队人马以摧毁对方大本营为目的互相厮杀，五个玩家组成一队，每个玩家从各具特色的一百多个英雄中选出一个，互相支援互相配合。
+一场比赛的用时大概在半小时到一小时之间，当然也有十分钟的短局，或者三四个小时的膀胱局。
 Dota 的首个版本于03年由开发者 Eul 发布，中间更换好几次开发者之后，由传奇的 Icefrog 冰蛙于05年开始接手开发至今，开启了一个传奇的时代。
 我是从冰蛙接手后的6.41版本开始接触 Dota 的，不要问我为什么能把版本号记得那么清楚，
 当一件事不是为了生计，而是完全出于喜爱而持续做了十年的时候，就成为了一种信仰（庄严脸）。
 
-当然很少有游戏能连续流行十几年。所以 Dota 的经久不衰要感谢 Dota2 的一波续命。09年，拥有全球最大在线游戏销售平台 Steam 的游戏公司 Valve 看中了 Dota 的巨大潜力，把冰蛙招入麾下着手开发独立的一款游戏 Dota2，使其摆脱魔兽争霸一张地图的身份。
+当然很少有游戏能连续流行十几年。所以 Dota 的经久不衰要感谢 Dota2 的一波续命。
+09年，拥有全球最大在线游戏销售平台 Steam 的游戏公司 Valve 看中了 Dota 的巨大潜力，把冰蛙招入麾下着手开发独立的一款游戏 Dota2，
+使其摆脱魔兽争霸一张地图的身份。
 为此还引发了反应慢半拍的暴雪和 Valve 之间的版权纠纷。
 Dota2 所有理念和设计完全照搬 Dota，但因为能独立于魔兽争霸之外，新的引擎给 Dota2 更绚丽的画面，更流畅的手感，以及游戏本身更高的自由度。
 但是 Dota2 在10年刚推出的时候，因为本身的完成度很低，和 Dota 本体的热度还在如火如荼中等原因，基本上没人能够或者愿意玩。
@@ -47,7 +50,7 @@ Valve 的这一手“千金买马骨”玩得实在溜，要知道当时即使�
 ## RDota2 简介
 
 在使用 RDota2 之前，我们需要到 [Steam 网站](https://steamcommunity.com/login/home/?goto=%2Fdev%2Fapikey) 申请 Steam API 的 Key。
-有 Steam 账号的话马上就能得到。在加载 RDota2 之后，只需要设定一次 Key，就能愉快得通过 API 提取数据了。
+有 Steam 账号的话马上就能得到。加载 RDota2 之后，只需要设定一次 Key，就能愉快得通过 API 提取数据了。
 
 ```{r, message=FALSE, warning=FALSE}
 library(RDota2)
@@ -61,10 +64,26 @@ key_actions(action = 'register_key', value = API_key)
 
 ### get_xxx 系列函数
 
-RDota2 通过各种 get 函数连接 API 抓取数据。
-除了提取详细比赛信息的函数 `get_match_details()` 和 `get_match_history_by_sequence_num()` 之外
+RDota2 通过各种 get 函数连接 Steam API 抓取数据。
+API 原始返回数据是 json 格式的，所以大多数 get 函数会在 R 里面返回层叠列表 list。
+除了提取详细比赛信息的函数 `get_match_details()` 和 `get_match_history_by_sequence_num()` 之外，这两个函数会在后面具体介绍，
+还有以下的函数提取关于一般比赛和职业联赛的信息：
 
+* `get_event_stats_for_account(eventid, accountid)`：查看账号 `accountid` 在一般联赛 `eventid` 里的记录
+* `get_league_listing()`: 查看所有联赛的信息
+* `get_live_league_games()`: 查看正在进行中的联赛以及选手信息
+* `get_scheduled_league_games()`: 查看已安排的联赛信息
+* `get_team_info_by_team_id(start_at_team_id, teams_requested)`: 从 `start_at_team_id` 开始提取 `teams_requested` 个职业战队的信息
+* `get_top_live_game()`: 查看正在进行中的高水平一般比赛和职业联赛，返回值里面有双方的平均 MMR（战斗力），这也是整个 API 里唯一关联 MMR 的函数
+* `get_tournament_player_stats(account_id)`: 查看账号 `account_id` 在国际锦标赛 TI 里的记录
+* `get_tournament_prize_pool()`: 查看国际锦标赛 TI 奖金池状态
 
+以下函数可以提取其他的游戏信息：
+
+* `get_game_items(language)`: 返回所有游戏物品的 data.frame，指定 `language` 还可以得到物品在这种语言下的名称
+* `get_heroes(language)`: 返回所有 Dota 英雄的 data.frame，指定 `language` 还可以得到英雄在这种语言下的名称
+* `get_item_icon_path(iconname, icontype)`: 指定物品名称 `iconname` 和类型 `icontype`（0=常规，1=大图，3=游戏内），返回物品图标 CDN 地址
+* `get_rarities()`: 这个是<span style="color:red">重点</span>，返回 Dota2 商店内饰品和皮肤的掉落率
 
 
 
