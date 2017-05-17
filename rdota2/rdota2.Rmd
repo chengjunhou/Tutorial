@@ -125,7 +125,7 @@ mrd = rbind(MRD[[1]],MRD[[2]],MRD[[4]],MRD[[5]])
 library(data.table)
 library(RDota2)
 setwd("D:/Workspace/Tutorial/rdota2/data")
-key_actions(action='register_key', value='9C7E629F1A71DEEC92397865170BB0B9')
+key_actions(action='register_key', value='XXXXXXXXXXXX')
 mvec = readRDS("mvec")
 
 
