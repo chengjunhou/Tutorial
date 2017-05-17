@@ -65,26 +65,109 @@ key_actions(action = 'register_key', value = API_key)
 ### get_xxx 系列函数
 
 RDota2 通过各种 get 函数连接 Steam API 抓取数据。
-API 原始返回数据是 json 格式的，所以大多数 get 函数会在 R 里面返回层叠列表 list。
+所有的 get 函数的返回值都包含三个元素：
+
+* url: 该次 API 请求的链接，可以把这个链接复制到浏览器的地址栏，回车得到相应的返回值
+* content: 该次 API 请求的具体返回值，因为用 web 返回数据的格式是json格式（复制到浏览器回车），在 R 里面 content 的形式是一个层叠列表
+* response：该次 API 请求在 Steam 服务器里面的处理信息
+
 除了提取详细比赛信息的函数 `get_match_details()` 和 `get_match_history_by_sequence_num()` 之外，这两个函数会在后面具体介绍，
 还有以下的函数提取关于一般比赛和职业联赛的信息：
 
-* `get_event_stats_for_account(eventid, accountid)`：查看账号 `accountid` 在一般联赛 `eventid` 里的记录
-* `get_league_listing()`: 查看所有联赛的信息
-* `get_live_league_games()`: 查看正在进行中的联赛以及选手信息
-* `get_scheduled_league_games()`: 查看已安排的联赛信息
+* `get_event_stats_for_account(eventid, accountid)`：返回账号 `accountid` 在一般联赛 `eventid` 里的记录
+* `get_league_listing()`: 返回所有联赛的信息
+* `get_live_league_games()`: 返回正在进行中的联赛以及选手信息
+* `get_scheduled_league_games()`: 返回已安排的联赛信息
 * `get_team_info_by_team_id(start_at_team_id, teams_requested)`: 从 `start_at_team_id` 开始提取 `teams_requested` 个职业战队的信息
-* `get_top_live_game()`: 查看正在进行中的高水平一般比赛和职业联赛，返回值里面有双方的平均 MMR（战斗力），这也是整个 API 里唯一关联 MMR 的函数
-* `get_tournament_player_stats(account_id)`: 查看账号 `account_id` 在国际锦标赛 TI 里的记录
-* `get_tournament_prize_pool()`: 查看国际锦标赛 TI 奖金池状态
+* `get_top_live_game()`: 返回正在进行中的高水平一般比赛和职业联赛，返回值里面有双方的平均 MMR（战斗力），这也是整个 API 里唯一关联 MMR 的函数
+* `get_tournament_player_stats(account_id)`: 返回账号 `account_id` 在国际锦标赛 TI 里的记录
+* `get_tournament_prize_pool()`: 返回国际锦标赛 TI 奖金池状态
 
 以下函数可以提取其他的游戏信息：
 
 * `get_game_items(language)`: 返回所有游戏物品的 data.frame，指定 `language` 还可以得到物品在这种语言下的名称
 * `get_heroes(language)`: 返回所有 Dota 英雄的 data.frame，指定 `language` 还可以得到英雄在这种语言下的名称
 * `get_item_icon_path(iconname, icontype)`: 指定物品名称 `iconname` 和类型 `icontype`（0=常规，1=大图，3=游戏内），返回物品图标 CDN 地址
-* `get_rarities()`: 这个是<span style="color:red">重点</span>，返回 Dota2 商店内饰品和皮肤的掉落率
+* `get_rarities(language)`: 这个是<span style="color:red">重点</span>，返回 Dota2 商店内饰品和皮肤的掉落率
 
+
+### get_match_details 和  get_match_history_by_sequence_num
+
+使用 `get_match_details(match_id)` 返回比赛详细信息时需要指定该场比赛的 ID，也就是所谓的录像编号。一般比赛会返回一个长度是23的列表，
+第1个元素包含了10名玩家的具体游戏信息，它本身也是一个复杂列表，除此之外，其他的元素都是一元的。它们包括：
+
+* radiant_win: 天辉是否获胜，1=是 0=否
+* duration: 比赛总时长，以秒计
+* pre_game_duration: 正式比赛前准备时长
+* start_time: 游戏开始时间，Unix 时间形式，下面例子里有时间转化方法
+* match_id: 比赛 ID
+* match_seq_num: 比赛序列号，该编号按比赛开始时间呈次序排列
+* tower_status_radiant: 天辉防御塔状态，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#towers-and-barracks)
+* tower_status_dire: 夜魇防御塔状态，具体同上
+* barracks_status_radiant: 天辉兵营状态，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#towers-and-barracks)
+* barracks_status_dire: 夜魇兵营塔状态，具体同上
+* first_blood_time: 一血时间
+* lobby_type: 游戏大厅，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#lobby-type)，常见的有：
+  + 0=常规比赛
+  + 2=练习，但所有职业比赛都在这一类里
+  + 7=排位赛，就是所谓的天梯
+* human_players: 非机器人的玩家数量
+* leagueid: 联赛 ID，0=一般比赛
+* positive_votes: “喜欢”投票
+* negative_votes: “不喜欢”投票
+* game_mode: 游戏模式，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#game-mode)，常见的有：
+  + 1=全阵营
+  + 2=队长模式
+  + 3=随机征召
+  + 4=
+  + 5=全随机
+  + 21=中路1对1
+  + 22=排位赛全阵营
+* flags: 未知
+* engine: 0=source1 1=source 2
+* radiant_score: 天辉击杀数
+* dire_score: 夜魇击杀数
+
+```{r, message=FALSE, warning=FALSE}
+match.normal <- get_match_details(match_id = 3170508667)$content
+unlist(match.normal[-1])
+as.POSIXct(match.normal$start_time, origin = '1970-01-01', tz = 'GMT')
+```
+
+职业联赛返回列表更长，除了上面的这些信息外，还有两支对决战队的信息，以及列表第34个元素包含的 Ban/Pick 详细信息。
+这里取4月亚洲锦标赛的一场决赛为例。祝贺B神！
+
+```{r, message=FALSE, warning=FALSE}
+match.league <- get_match_details(match_id = 3097027819)$content
+unlist(match.normal[-c(1, 34)])
+```
+
+玩家列表（返回值的第一个元素）包含10个元素，对应10个玩家，前5个是天辉，后5个是夜魇。下面是某一个玩家的具体信息，包括所选英雄，物品栏，击杀/死亡/助攻，正反补，金钱经验每分钟，造成伤害/治疗，技能升级等等。
+
+```{r, message=FALSE, warning=FALSE}
+str(match.league$players[[5]])
+```
+
+值得注意的是，`player_slot` 这一栏在设定上是可以区分1到5号位的，但是实际中并没有用到，还是0到4为天辉，128到132为夜魇。
+
+```
+┌─────────────── 0=天辉 1=夜魇
+│ ┌─┬─┬─┬─────── 没用
+│ │ │ │ │ ┌─┬─┬─ 队伍中的1到5号位 (0-4)
+0 0 0 0 0 0 0 0
+```
+
+以上就是 `get_match_details()` 函数的所有返回值。
+`get_match_history_by_sequence_num(start_at_match_seq_num, matches_requested)` 函数的返回值是一模一样的形式，
+唯一的不同就是这个函数可以返回多场比赛的详细信息，从 `start_at_match_seq_num` 开始往后返回 `matches_requested` 场比赛，
+注意这里必须输入比赛序列号 match_seq_num，该编号按比赛开始时间呈次序排列。另外1次请求最多能返回100场比赛的信息。
+
+```{r, message=FALSE, warning=FALSE}
+match.multi <- get_match_history_by_sequence_num(start_at_match_seq_num=2704563366， matches_requested=10)$content
+c(match.multi$maches[[1]]$match_id, match.multi$maches[[10]]$match_id)
+```
+
+其实还有一个 get 函数 `get_match_history()` 
 
 
 
