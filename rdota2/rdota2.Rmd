@@ -15,9 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 不过为了发扬继承郎大为“十行代码”系列的优良传统，我决定沿用这个名字，希望能把品牌做大做强，走出亚洲，面向世界。。。
 
 事情的起因是这样的：上周与同为信仰粉的大为接上头之后，被安利了一个叫 RDota2 的 R pacakge。
-这个工具包使用 Steam API，可以让 R 直接提取有关 Dota2 的各种数据：除了每一场游戏的具体信息，还可以得到英雄，物品，战队，和联赛的资料。
-所以我就萌生了用这个 API 提取一批比赛数据，然后建模预测比赛输赢的想法。结果还是相当有趣的，且听我慢慢道来。
-不过在此之前，我想先为对这个问题感兴趣但不知道什么是 Dota2 的同学，简单介绍一下这款游戏。
+这个工具包使用 Steam API，可以让 R 直接提取有关 Dota2 的各种数据：除了每一场游戏的具体信息，还可以提取英雄，物品，战队，和联赛的资料。
+所以我就萌生了用这个 API 抓一批比赛数据，然后建模预测比赛胜负的想法。结果还是相当有趣的，且听我慢慢道来。
+不过在此之前，我想先为对建模感兴趣但不知道什么是 Dota2 的同学，简单介绍一下这款游戏。
 
 Dota2 来源于暴雪魔兽争霸的一张自定义地图，又叫 RPG 图，就是由地图开发者在魔兽争霸这个游戏之上自己创建了一种玩法。
 这张地图的名字就叫做 Dota，Defense of the Ancient，被视为当下十分流行的MOBA类游戏的鼻祖。
@@ -49,7 +49,7 @@ Valve 的这一手“千金买马骨”玩得实在溜，要知道当时即使�
 
 ## RDota2 简介
 
-在使用 RDota2 之前，我们需要到 [Steam 网站](https://steamcommunity.com/login/home/?goto=%2Fdev%2Fapikey) 申请 Steam API 的 Key。
+在使用 Package RDota2 之前，我们需要到 [Steam 网站](https://steamcommunity.com/login/home/?goto=%2Fdev%2Fapikey) 申请 Steam API 的 Key。
 有 Steam 账号的话马上就能得到。加载 RDota2 之后，只需要设定一次 Key，就能愉快得通过 API 提取数据了。
 
 ```{r, message=FALSE, warning=FALSE}
@@ -90,6 +90,11 @@ RDota2 通过各种 get 函数连接 Steam API 抓取数据。
 * `get_item_icon_path(iconname, icontype)`: 指定物品名称 `iconname` 和类型 `icontype`（0=常规，1=大图，3=游戏内），返回物品图标 CDN 地址
 * `get_rarities(language)`: 这个是<span style="color:red">重点</span>，返回 Dota2 商店内饰品和皮肤的掉落率
 
+```{r, message=FALSE, warning=FALSE}
+hero.df <- get_heroes(language = 'zh')$content
+head(hero.df)
+```
+
 
 ### get_match_details 和  get_match_history_by_sequence_num
 
@@ -108,9 +113,11 @@ RDota2 通过各种 get 函数连接 Steam API 抓取数据。
 * barracks_status_dire: 夜魇兵营塔状态，具体同上
 * first_blood_time: 一血时间
 * lobby_type: 游戏大厅，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#lobby-type)，常见的有：
-  + 0=常规比赛
-  + 2=练习，但所有职业比赛都在这一类里
+  + 0=公共比赛
+  + 1=练习，但所有职业比赛都在这一类里
+  + 4=与AI合作/对战，就是所谓的打电脑
   + 7=排位赛，就是所谓的天梯
+  + 8=单人比赛，主要用于中路1对1
 * human_players: 非机器人的玩家数量
 * leagueid: 联赛 ID，0=一般比赛
 * positive_votes: “喜欢”投票
@@ -119,10 +126,13 @@ RDota2 通过各种 get 函数连接 Steam API 抓取数据。
   + 1=全阵营
   + 2=队长模式
   + 3=随机征召
-  + 4=
-  + 5=全随机
+  + 4=个别征召
+  + 5=全阵营随机
+  + 12=生疏模式
+  + 18=随机模型（技能）
+  + 20=全阵营死亡模式
   + 21=中路1对1
-  + 22=排位赛全阵营
+  + 22=排位全阵营
 * flags: 未知
 * engine: 0=source1 1=source 2
 * radiant_score: 天辉击杀数
@@ -168,26 +178,85 @@ c(match.multi$maches[[1]]$match_id, match.multi$maches[[10]]$match_id)
 ```
 
 其实还有一个 get 函数 `get_match_history()` 可以通过输入不同的参数例如 game_mode 来筛选返回的比赛。
-但当我测试时，有些输入参数并没有正确的筛选比赛，而且返回的比赛信息太简略，缺少比赛胜负信息，我就没有用这个函数提取比赛数据。
+但在我测试时，有些输入参数并没有正确的筛选比赛，而且返回的比赛信息太简略，缺少比赛胜负信息，我就没有用这个函数提取比赛数据。
 
 
 
-## 数据处理
+## 数据提取和处理
+
+### 确定建模目标
+
+数据的提取需要服务于建模的目的，即这个模型回答了什么问题。
+预测比赛胜负是一个直观明确的目标，但是还需要思考的是，通过哪些信息预测比赛胜负，在什么时候预测比赛胜负，
+进入游戏之前，英雄选择之后，或者是游戏进行当中。我们可以用天辉夜魇双方的击杀数来预测比赛胜负，但是需要注意两点：首先击杀数是随着游戏时间而变化的，
+其次击杀数领先的一方有显著更高的几率获胜，特别是游戏进入尾声时，击杀数领先一方几乎都是获胜方，虽然有例外存在。
+所以我对用击杀数建模预测胜负的兴趣并不大。
+
+Dota 或者说 MOBA 类游戏可以长盛不衰的魅力就在于英雄的设计，他们各具特色，又相辅相成，不同的英雄给人完全不同的游戏体验。
+而我认为 Dota2 的英雄设计不管从丰富，平衡，还是特色的角度看都是最出众的。从 TI6 出场英雄数高达105个就可见一斑：现在 Dota2 总英雄数是，
+除去少数几个当时还不能参加正式联赛的英雄，超过95%的英雄登上了 TI 的舞台；考虑105取10的组合，这是一个接近3万亿的巨大数字！
+所以这次建模，我想纯粹通过英雄选择，来预测比赛胜负。
 
 
+### 数据提取
 
-``` {r, message=FALSE, warning=FALSE}
-library(data.table)
-setwd("D:/Workspace/Tutorial/rdota2/data")
+首先，我提取了5000场游戏的基本信息，为了对比赛数据做一个直观的了解。用到的是我自己写的程序，从这里下载，或者参考附录。
+用法是指定一条 match_id 给 `mid.a`，和想要提取比赛的总数给 `nnn`，程序就会自动找到对应的 match_seq_num，然后往后开始提取 `nnn` 条比赛信息。
+最后程序会把所有信息汇总到一个 data.table 里，并储存在当前工作文件夹下的一个 rds 文件“RDSxxxxxx”里，“xxxxxx”即为 `mid.a`。
+
+因为 Steam 服务器对一段时间内的 API 访问数或者访问数据量有限制（具体不明），
+用`get_match_history_by_sequence_num()` 函数以最大值100条提取数据时，很快就会因为达到上限而无法继续，需要等待一段时间再发送请求。
+所以在我程序里设置了1次提取数据的数量，目前是10。
+总体数据提取效率还可以，10万条大概用时一个小时多一点，当然网络连接速度对用时有很大影响。
+
+回到之前5000场的样本，我们看一下游戏大厅（lobby_type）和游戏模式（game_mode）的分布：
+
+```{r, message=FALSE, warning=FALSE}
+table(sample$lobby, sample$gmode)
+```
+
+可以看到大多数游戏集中在了公共比赛（lobby_type=0）和排位比赛（lobby_type=7）的排位全阵营模式（game_mode=22）中，
+一般全阵营模式（game_mode=1）只出现在与AI的比赛中（lobby_type=4）。
+带 Ban/Pick 的队长模式（game_mode=2）只出现在了公共比赛（lobby_type=0），练习赛（lobby_type=1），和排位赛（lobby_type=7）中，
+且这8场练习赛都是联赛（league_id>0）。此外，所有的10场练习赛（lobby_type=1）都是联赛（league_id>0）。
+建模数据只包含了，排位赛（lobby_type=22）的全部模式，和练习赛即联赛的队长模式（game_mode=2），因为这些是质量最高的比赛，不大会出现消极游戏等情况。
+同时要保证每场比赛必须有10位玩家参加。这些筛选条件都已经包含在了，可以根据需要自行修改。
+
+为了获得建模数据，我选了5场联赛，它们分别在。然后往后各取了10万条比赛记录，不用担心会有重复，因为一天里进行的比赛数远远超过了我一开始的猜测。
+经过筛选后的 rds 文件我分享在了这里，下面的程序可以读取它们，然后我们分别看一下10万记录筛选后还剩多少，以及它们分别发生在多长时间里：
+
+```{r, message=FALSE, warning=FALSE}
 mvec = readRDS("mvec")
-
-
 dt = list()
-MRD = list()
-for (i in 1:5) {
+for (i in 1:6) {
   mid.a = mvec[i]
   dt[[i]] = readRDS(paste0("RDS",mid.a))
   dt[[i]] = dt[[i]][order(dt[[i]]$mid),]
+ }
+sapply(dt, function(x) length(x))
+sapply(dt, function(x) max(x$st)-min(x$st)) / 3600
+```
+
+再画一下游戏时长的分布：
+```{r, message=FALSE, warning=FALSE}
+ggplot(dt[[1]], aes(duration)) + geom_histogram(aes(y = ..density..), binwidth=10)
+```
+
+
+### 数据处理
+
+```{r, message=FALSE, warning=FALSE}
+head(dt[[1]])
+```
+
+在提取的数据中，天辉的英雄选择放在了“R1”到“R5”，夜魇则是“D1”到“D5”。
+但是这里的1到5并不是1到5号位，相反1到5之间并没有次序关系，即使它们之间相互交换内容，也不应该对建模结果造成影响。
+所以需要用下面的代码近一步处理数据。在处理之前游戏时长少于15分钟的比赛会被剔除。
+
+``` {r, message=FALSE, warning=FALSE}
+MRD = list()
+for (i in 1:5) {
+  mid.a = mvec[i]
   dt[[i]] = dt[[i]][dt[[i]]$duration>=900,]
   
   dt.m = reshape2::melt(dt[[i]][,c("mid","R1","R2","R3","R4","R5"),with=F],id="mid")
@@ -214,12 +283,92 @@ for (i in 1:5) {
   
   print(i)
 }
-
-mrd = rbind(MRD[[1]],MRD[[2]],MRD[[4]],MRD[[5]])
+head(MRD[[1]][,c(1,2,3,4,5,101,102,103,104,105)])
 ```
+
+可以看到处理之后的数据，如果天辉方选择了英雄编号10，那么“R”这个位置就会为1，反之为0。
+显然，每一行（一场比赛）代表英雄选择的0/1加起来一定是10。游戏大厅和游戏模式的信息我也总结了一下，放在 `gtype`里。
+除此之外我还加入了游戏时长，虽然这个信息在比赛开始之前并不能获知，但 Dota2 里英雄的作用随着游戏时间有着巨大的变化。
+不同英雄组成的阵容有明显不同的强势弱势时期，获胜的基本策略之一就是在敌人强势时期避免作战，在己方强势时期结束比赛。
+
+现在建模的脉络就很清晰了，自变量包括天辉英雄选择，夜魇英雄选择，游戏模式和时长，因变量是天辉是否获胜。
+本来我还想过把1条数据变成2条，即自变量为己方阵容，因变量为己方是否获胜。
+但是如果这样处理，英雄阵容之间的克制关系就不能反映出来了，所以作罢。
+
 
 
 ## 建模及结果
+
+处理之后的数据 `MRD` 中 ，我选出第3个作为验证数据（holdout），大概占总数据的20%，其余的作为训练数据（training）。
+
+```{r, message=FALSE, warning=FALSE， eval=FALSE}
+mrd = rbind(MRD[[1]], MRD[[2]], MRD[[4]], MRD[[5]])
+vrd = MRD[[3]]
+```
+
+不过在建模之前我还想介绍一个常用比较二元模型性能的参数 AUC（area-under-curve）。
+
+
+### 模型性能参数 AUC
+
+
+
+### naiveBayes 模型
+
+首先我决定用 naiveBayes 模型尝试只用英雄选择信息建模。naiveBayes 的核心就是条件概率：首先计算训练数据里天辉获胜的总体概率，
+然后计算天辉获胜时自变量的分布情况，再由条件概率得到自变量是这样分布的情况下天辉获胜的概率。
+模型特点是简单，不用调试任何参数，不容易过拟合，计算效率高。它在文本分析/情感分析方面被证实效果还是不错的：
+Dota2 英雄的数量只有124，1篇文章里面独特的字/词可就多了，需要一个高效的算法处理这些信息。
+
+```{r, eval=FALSE}
+library(e1071)
+nb_tr <- naiveBayes(x=mrd[,-c(227:232)], y=mrd[,232])
+ooY.nb = predict(nb_tr, MRD[[3]][,-c(227:232)], type="raw")
+roc_obj <- prediction(ooY.nb[,2], MRD[[3]][,232])
+performance(roc_obj, measure = "auc")@y.values[[1]]
+```
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+readRDS()
+roc_obj <- prediction(ooY.nb[,2], MRD[[3]][,232])
+performance(roc_obj, measure = "auc")@y.values[[1]]
+```
+
+### gradient-boosting-machine 模型
+
+GBM 模型是一种树模型。
+
+模型参数通过交叉验证调整得到，具体的过程就不介绍了，只给出调整后的参数：
+
+```{r, message=FALSE, warning=FALSE， eval=FALSE}
+library(xgboost)
+xgb_params_1 = list(
+  objective = "binary:logistic",            # binary classification
+  eta = 0.42,                               # learning rate
+  max.depth = 6,                            # max tree depth
+  eval_metric = "error"                     # evaluation/loss metric
+)
+xgb_tr = xgboost(data = mrd[,-232], label = mrd[,232],
+                 params = xgb_params_1,
+                 nrounds = 68,                  # max number of trees to build
+                 early_stopping_rounds = 12,    # stop if no improvement within 10 trees
+                 nthread = 8,
+                 verbose = TRUE,                                         
+                 print_every_n = 1
+)
+# 
+trY = predict(xgb_tr, mrd[,-232])
+roc_obj <- prediction(trY, mrd[,232])
+performance(roc_obj, measure = "auc")@y.values[[1]]
+#
+ooY = predict(xgb_tr, MRD[[3]][,-232])
+roc_obj <- prediction(ooY, MRD[[3]][,232])
+performance(roc_obj, measure = "auc")@y.values[[1]]
+```
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+readRDS()
+roc_obj <- prediction(ooY.nb[,2], MRD[[3]][,232])
+performance(roc_obj, measure = "auc")@y.values[[1]]
+```
 
 
 ## 附录
