@@ -1,7 +1,7 @@
 ---
-title: "ʮ�д���Ԥ���������ͼ"
-author: "��ξ�"
-date: "2017��5��19��"
+title: "十行代码预测插旗西雅图"
+author: "侯澄钧"
+date: "2017年5月19日"
 output: 
   html_document: 
     keep_md: true
@@ -11,60 +11,60 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## ��������
+## 背景故事
 
-�Ҵ��ˣ��ҳ������Ǳ��⵳����ô������ʮ�д������**����2 ~~Dota2~~ �������ݵ�ץȡ, ��ϴ��Ԥ�⽨ģ��**��
-����Ϊ�˷���̳��ɴ�Ϊ��ʮ�д��롱ϵ�е�������ͳ���Ҿ�������������֣�ϣ���ܰ�Ʒ��������ǿ���߳����ޣ��������硣����
+我错了，我承认我是标题党，怎么可能用十行代码完成**信仰2 ~~Dota2~~ 比赛数据的抓取, 清洗与预测建模呢**。
+不过为了发扬继承郎大为“十行代码”系列的优良传统，我决定沿用这个名字，希望能把品牌做大做强，走出亚洲，面向世界。。。
 
-����������������ģ�������ͬΪ�����۵Ĵ�Ϊ����ͷ֮�󣬱�������һ���� RDota2 �� R pacakge��
-������߰�ʹ�� Steam API�������� R ֱ����ȡ�й� Dota2 �ĸ������ݣ�����ÿһ����Ϸ�ľ�����Ϣ����������ȡӢ�ۣ���Ʒ��ս�ӣ������������ϡ�
-�����Ҿ��������� RDota2 ץһ���������ݣ�Ȼ��ģԤ�����ʤ�����뷨����������൱��Ȥ�ģ�����������������
-�����ڴ�֮ǰ��������Ϊ�Խ�ģ����Ȥ����֪��ʲô�� Dota2 ��ͬѧ���򵥽���һ�������Ϸ��
+事情的起因是这样的：上周与同为信仰粉的大为接上头之后，被安利了一个叫 RDota2 的 R pacakge。
+这个工具包使用 Steam API，可以让 R 直接提取有关 Dota2 的各种数据：除了每一场游戏的具体信息，还可以提取英雄，物品，战队，和联赛的资料。
+所以我就萌生了用 RDota2 抓一批比赛数据，然后建模预测比赛胜负的想法。结果还是相当有趣的，且听我慢慢道来。
+不过在此之前，我想先为对建模感兴趣但不知道什么是 Dota2 的同学，简单介绍一下这款游戏。
 
 ![](https://cloud.githubusercontent.com/assets/11251354/26287701/050b8c4c-3e4f-11e7-8bba-05edd84f4614.JPG)  
-Dota2������
+Dota2众型男
 
-Dota2 ��Դ�ڱ�ѩħ�����Ե�һ���Զ����ͼ���ֽ� RPG ͼ�������ɵ�ͼ��������ħ�����������Ϸ֮���Լ�������һ���淨��
-���ŵ�ͼ�����־ͽ��� Dota��Defense of the Ancient������Ϊ����ʮ�����е�MOBA����Ϸ�ı��档
-MOBA��Ϸ���ص��ǣ����������ԴݻٶԷ���ӪΪĿ�Ļ�����ɱ�����������һ�ӣ�ÿ����ҴӸ�����ɫ��һ�ٶ��Ӣ����ѡ��һ��������֧Ԯ������ϡ�
-һ����������ʱ����ڰ�Сʱ��һСʱ֮�䣬��ȻҲ��ʮ���ӵĶ֣̾��������ĸ�Сʱ�İ��׾֡�
-Dota ���׸��汾��03���ɿ����� Eul �������м�����ü��ο�����֮����ΰ��� Icefrog ������05�꿪ʼ���ֿ������񣬿�����һ�������ʱ����
-���Ǵӱ��ܽ��ֺ��6.41�汾��ʼ�Ӵ� Dota �ģ���Ҫ������ô�Ѱ汾�żǵ���ô�����
-��һ���²���Ϊ�����ƣ�������ȫ����ϲ������������ʮ���ʱ�򣬾ͳ�Ϊ��һ��������ׯ��������
+Dota2 来源于暴雪魔兽争霸的一张自定义地图，又叫 RPG 图，就是由地图开发者在魔兽争霸这个游戏之上自己创建了一种玩法。
+这张地图的名字就叫做 Dota，Defense of the Ancient，被视为当下十分流行的 MOBA 类游戏的鼻祖。
+MOBA 游戏的机制是，两队人马以摧毁对方大本营为目的互相厮杀，五个玩家组成一队，每个玩家从各具特色的一百多个英雄中选出一个，互相支援配合。
+一场比赛的用时大概在半小时到一小时之间，当然也有十几分钟的短局，或者三四小时的膀胱局。
+Dota 的首个版本于03年由开发者 Eul 发布，中间更换好几次开发者之后，由伟大的 Icefrog 冰蛙于05年开始接手开发至今，开启了一个传奇的时代。
+我是从冰蛙接手后的6.41版本开始接触 Dota 的，不要问我怎么把版本号记得那么清楚，
+当一件事不是为了生计，而是完全出于喜爱而持续做了十年的时候，就成为了一种信仰（庄严脸）。
 
 ![](https://cloud.githubusercontent.com/assets/11251354/26287704/050dc76e-3e4f-11e7-85de-30a051af88c8.JPG)  
-6.48�汾���뻭�� 
+6.48版本载入画面 
 
-��Ȼ��������Ϸ����������ʮ���ꡣ���� Dota �ľ��ò�˥Ҫ��л Dota2 ��һ��������
-09�꣬ӵ��ȫ�����������Ϸ����ƽ̨ Steam ����Ϸ��˾ Valve ������ Dota �ľ޴�Ǳ�����ѱ��������������ֿ���������һ����Ϸ Dota2��
-ʹ�����ħ������һ�ŵ�ͼ�����ݡ�
-Ϊ�˻������˷�Ӧ�����ĵı�ѩ�� Valve ֮��İ�Ȩ���ס�
-Dota2 ��������������ȫ�հ� Dota������Ϊ�ܶ�����ħ������֮�⣬�µ������ Dota2 ��Ѥ���Ļ��棬���������ָУ��Լ���Ϸ�������ߵ����ɶȡ�
-���� Dota2 ��10����Ƴ���ʱ����Ϊ��������ɶȺܵͣ�Dota ���廹ʮ�ֻ��ȵ�ԭ�򣬻�����û���ܹ�����Ը���档
-ֱ��11�� Valve �ڵ¹���¡��Ϸչ�Ͼٰ����׽� Dota2 ���ʾ����� The International (TI)��Dota2 �ųɹ�չʾ���Լ��Ĵ��ڡ�
-Valve ����һ�֡�ǧ�������ǡ����ʵ���Ҫ֪����ʱ��ʹ�ڵ羺����ŷ�ޣ���������Ľ�������Ͼͼ�ǧŷ��
-ͻȻʯ���쾪��һ���ܽ���160����Ԫ���ھ�100����Ԫ�����ܲ���������ص����������Ŀ�ɿڴ���
-���ĸ�ְҵ���л�����ʱ�龰����һ����ñ�ʾ���ǵĵ�һ��Ӧ���ǣ��⹫˾��ƭ�Ӱɡ�
-Ȼ�� TI �Ĵ�ͳ������������������ TI1��֮���5�춼�� Valve �ܲ�����ͼ�ٰ죬�����й�ս������ TI2��TI4���� TI6�Ĺھ���
-ȥ�� TI6 ���ܽ���Ϊ2000����Ԫ�����۴��ĸ��Ƕȣ��������ǽ�Ǯ���Ѻ����������ͼ TI �ھ��콱̨����ÿ���й�ս�ӵ��ռ����롣
+当然很少有游戏能连续流行十几年。所以 Dota 的经久不衰要感谢 Dota2 的一波续命。
+09年，拥有全球最大在线游戏销售平台 Steam 的游戏公司 Valve 看中了 Dota 的巨大潜力，把冰蛙招入麾下着手开发独立的一款游戏 Dota2，
+使其摆脱魔兽争霸一张地图的身份。
+为此还引发了反应慢半拍的暴雪和 Valve 之间的版权纠纷。
+Dota2 所有理念和设计完全照搬 Dota，但因为能独立于魔兽争霸之外，新的引擎给 Dota2 更绚丽的画面，更流畅的手感，以及游戏本身更高的自由度。
+但是 Dota2 在10年刚推出的时候，因为本身的完成度很低，Dota 本体还十分火热等原因，基本上没人能够或者愿意玩。
+直到11年 Valve 在德国科隆游戏展上举办了首届 Dota2 国际竞标赛 The International (TI)，Dota2 才成功展示了自己的存在。
+Valve 的这一手“千金买马骨”玩得实在溜，要知道当时即使在电竞最发达的欧洲，各大比赛的奖金基本上就几千欧，
+突然石破天惊来一个总奖金160万美元，冠军100万美元，这能不让世界各地的网瘾少年们目瞪口呆吗。
+如今的各职业大佬回忆起当时情景，无一例外得表示他们的第一反应都是，这公司是骗子吧。
+然后 TI 的传统就延续了下来，除了 TI1，之后的5届都在 Valve 总部西雅图举办，其中中国战队拿了 TI2，TI4，和 TI6的冠军，
+去年 TI6 的总奖金更是超过了2000万美元。不论从哪个角度，荣誉还是金钱，把红旗插上西雅图 TI 冠军领奖台都是每个中国战队的终极梦想。
 
 ![](https://cloud.githubusercontent.com/assets/11251354/26287703/050c573a-3e4f-11e7-8b95-46edafc29d3f.JPG)  
-IG��TI2���״β���ɹ�
+IG在TI2上首次插旗成功
 
-���ڵ��ҿ� Dota �������Լ��������Ȥ����Ҫ���ػ���ˮƽϡ�ðɡ��������� Dota ����̵ļ���Ҳ�ǿ�������
-����ǵÿ� TI2 �й�ս�������ս�ӵľ���ֱ��ʱ������һ�����صĽ������飬���к���һ��ͻ���ȥ TI5 �ֳ�ʱ���ܵ���ʢ����ǰ��
-���ˣ��˳����˻���������û�꣬����������⣺���ķ������½ڣ��������Ĺ��߰� RDota2 ��ʹ�ã�
-Ȼ��д��δ� API ץȡ������������ȡ������Ϣ������ģ���������־��ǽ�ģ�Ĳ���ͽ���ˡ�
+现在的我看 Dota 比赛比自己玩更有乐趣，主要因素还是水平稀烂吧。除了大学时参加校联赛，关于 Dota 最深刻的记忆也还是看比赛：
+清楚记得看 TI2 中国战队与国外战队决赛直播时，基友一脸便秘的紧张神情，还有和另一半和基友去 TI5 现场时感受到的盛况空前。
+好了，人长大了回忆起来就没完，下面进入正题：正文分三个章节，首先聊聊工具包 RDota2 的使用，
+然后写如何从 API 抓取到的数据里提取有用信息用来建模，第三部分就是建模的步骤和结果了。
 
 ![](https://cloud.githubusercontent.com/assets/11251354/26287700/050b6e56-3e4f-11e7-964a-a664ae0c6b0a.JPG)  
-TI6�ֳ�����ͼKey-Arena
+TI6现场西雅图Key-Arena
 
 
 
-## RDota2 ���
+## RDota2 简介
 
-��ʹ�� Package RDota2 ֮ǰ��������Ҫ�� [Steam ��վ](https://steamcommunity.com/login/home/?goto=%2Fdev%2Fapikey) ���� Steam API �� Key��
-�� Steam �˺ŵĻ����Ͼ��ܵõ������� RDota2 ֮��ֻ��Ҫ�趨һ�� Key����������ͨ�� API ��ȡ�����ˡ�
+在使用 Package RDota2 之前，我们需要到 [Steam 网站](https://steamcommunity.com/login/home/?goto=%2Fdev%2Fapikey) 申请 Steam API 的 Key。
+有 Steam 账号的话马上就能得到。加载 RDota2 之后，只需要设定一次 Key，就能愉快得通过 API 提取数据了。
 
 ```{r, message=FALSE, warning=FALSE}
 library(RDota2)
@@ -72,37 +72,37 @@ API_key = readRDS("Steam_API_Key")
 key_actions(action = 'register_key', value = API_key)
 ```
 
-��Ȼ������ȫ�ķ�ʽ�ǰ� Key ���ڲ���ϵͳ�Ļ��������У��Ժ���������������ɣ�
-�������̿��Բο� [����](https://cran.r-project.org/web/packages/RDota2/vignettes/RDota2.html)��
+当然，更安全的方式是把 Key 存在操作系统的环境变量中，以后引用这个变量即可，
+具体流程可以参考 [这里](https://cran.r-project.org/web/packages/RDota2/vignettes/RDota2.html)。
 
 
-### get_xxx ϵ�к���
+### get_xxx 系列函数
 
-RDota2 ͨ������ get �������� Steam API ץȡ���ݡ�
-���е� get �����ķ���ֵ����������Ԫ�أ�
+RDota2 通过各种 get 函数连接 Steam API 抓取数据。
+所有的 get 函数的返回值都包含三个元素：
 
-* url: �ô� API ��������ӣ����԰�������Ӹ��Ƶ�������ĵ�ַ�����س��õ���Ӧ�ķ���ֵ
-* content: �ô� API ����ľ��巵��ֵ����Ϊ�� web �������ݵĸ�ʽ��json��ʽ�����Ƶ�������س������� R ���� content ����ʽ��һ������б�
-* response���ô� API ������ Steam ����������Ĵ�����Ϣ
+* url: 该次 API 请求的链接，可以把这个链接复制到浏览器的地址栏，回车得到相应的返回值
+* content: 该次 API 请求的具体返回值，因为用 web 返回数据的格式是json格式（复制到浏览器回车），在 R 里面 content 的形式是一个层叠列表
+* response：该次 API 请求在 Steam 服务器里面的处理信息
 
-������ȡ��ϸ������Ϣ�ĺ��� `get_match_details()` �� `get_match_history_by_sequence_num()` ֮�⣬�������������ں��������ܣ�
-�������µĺ�����ȡ����һ�������ְҵ��������Ϣ��
+除了提取详细比赛信息的函数 `get_match_details()` 和 `get_match_history_by_sequence_num()` 之外，这两个函数会在后面具体介绍，
+还有以下的函数提取关于一般比赛和职业联赛的信息：
 
-* `get_event_stats_for_account(eventid, accountid)`�������˺� `accountid` ��һ������ `eventid` ��ļ�¼
-* `get_league_listing()`: ����������������Ϣ
-* `get_live_league_games()`: �������ڽ����е������Լ�ѡ����Ϣ
-* `get_scheduled_league_games()`: �����Ѱ��ŵ�������Ϣ
-* `get_team_info_by_team_id(start_at_team_id, teams_requested)`: �� `start_at_team_id` ��ʼ��ȡ `teams_requested` ��ְҵս�ӵ���Ϣ
-* `get_top_live_game()`: �������ڽ����еĸ�ˮƽһ�������ְҵ����������ֵ������˫����ƽ�� MMR��ս����������Ҳ������ API ��Ψһ���� MMR �ĺ���
-* `get_tournament_player_stats(account_id)`: �����˺� `account_id` �ڹ��ʽ����� TI ��ļ�¼
-* `get_tournament_prize_pool()`: ���ع��ʽ����� TI �����״̬
+* `get_event_stats_for_account(eventid, accountid)`：返回账号 `accountid` 在一般联赛 `eventid` 里的记录
+* `get_league_listing()`: 返回所有联赛的信息
+* `get_live_league_games()`: 返回正在进行中的联赛以及选手信息
+* `get_scheduled_league_games()`: 返回已安排的联赛信息
+* `get_team_info_by_team_id(start_at_team_id, teams_requested)`: 从 `start_at_team_id` 开始提取 `teams_requested` 个职业战队的信息
+* `get_top_live_game()`: 返回正在进行中的高水平一般比赛和职业联赛，返回值里面有双方的平均 MMR（战斗力），这也是整个 API 里唯一关联 MMR 的函数
+* `get_tournament_player_stats(account_id)`: 返回账号 `account_id` 在国际锦标赛 TI 里的记录
+* `get_tournament_prize_pool()`: 返回国际锦标赛 TI 奖金池状态
 
-���º���������ȡ��������Ϸ��Ϣ��
+以下函数可以提取其他的游戏信息：
 
-* `get_game_items(language)`: ����������Ϸ��Ʒ�� data.frame��ָ�� `language` �����Եõ���Ʒ�����������µ�����
-* `get_heroes(language)`: �������� Dota Ӣ�۵� data.frame��ָ�� `language` �����Եõ�Ӣ�������������µ�����
-* `get_item_icon_path(iconname, icontype)`: ָ����Ʒ���� `iconname` ������ `icontype`��0=���棬1=��ͼ��3=��Ϸ�ڣ���������Ʒͼ�� CDN ��ַ
-* `get_rarities(language)`: �����<span style="color:red">�ص�</span>������ Dota2 �̵�����Ʒ��Ƥ���ĵ�����
+* `get_game_items(language)`: 返回所有游戏物品的 data.frame，指定 `language` 还可以得到物品在这种语言下的名称
+* `get_heroes(language)`: 返回所有 Dota 英雄的 data.frame，指定 `language` 还可以得到英雄在这种语言下的名称
+* `get_item_icon_path(iconname, icontype)`: 指定物品名称 `iconname` 和类型 `icontype`（0=常规，1=大图，3=游戏内），返回物品图标 CDN 地址
+* `get_rarities(language)`: 这个是<span style="color:red">重点</span>，返回 Dota2 商店内饰品和皮肤的掉落率
 
 ```{r, message=FALSE, warning=FALSE}
 hero.df <- get_heroes(language = 'zh')$content
@@ -110,47 +110,47 @@ head(hero.df)
 ```
 
 
-### get_match_details ����
+### get_match_details 函数
 
-ʹ�� `get_match_details(match_id)` ���ر�����ϸ��Ϣʱ��Ҫָ���ó������� ID��Ҳ������ν��¼���š�һ������᷵��һ��������23���б���
-��1��Ԫ�ذ�����10����ҵľ�����Ϸ��Ϣ��������Ҳ��һ�������б�������֮�⣬������Ԫ�ض���һԪ�ġ����ǰ�����
+使用 `get_match_details(match_id)` 返回比赛详细信息时需要指定该场比赛的 ID，也就是所谓的录像编号。一般比赛会返回一个长度是23的列表，
+第1个元素包含了10名玩家的具体游戏信息，它本身也是一个复杂列表，除此之外，其他的元素都是一元的。它们包括：
 
-* radiant_win: ����Ƿ��ʤ��1=��, 0=��
-* duration: ������ʱ���������
-* pre_game_duration: ��ʽ����ǰ׼��ʱ��
-* start_time: ��Ϸ��ʼʱ�䣬Unix ʱ����ʽ��������������ʱ��ת������
-* match_id: ���� ID
-* match_seq_num: �������кţ��ñ�Ű�������ʼʱ��ʴ�������
-* tower_status_radiant: ��Է�����״̬������ο� [�˴�](https://dota2api.readthedocs.io/en/latest/responses.html#towers-and-barracks)
-* tower_status_dire: ҹ�ʷ�����״̬������ͬ��
-* barracks_status_radiant: ��Ա�Ӫ״̬������ο� [�˴�](https://dota2api.readthedocs.io/en/latest/responses.html#towers-and-barracks)
-* barracks_status_dire: ҹ�ʱ�Ӫ��״̬������ͬ��
-* first_blood_time: һѪʱ��
-* lobby_type: ��Ϸ����������ο� [�˴�](https://dota2api.readthedocs.io/en/latest/responses.html#lobby-type)���������У�
-    + 0=��������
-    + 1=��ϰ��������ְҵ����������һ����
-    + 4=��AI����/��ս��������ν�Ĵ����
-    + 7=��λ����������ν������
-    + 8=���˱�������Ҫ������·1��1
-* human_players: �ǻ����˵��������
-* leagueid: ���� ID��0=һ�����
-* positive_votes: ��ϲ����ͶƱ
-* negative_votes: ����ϲ����ͶƱ
-* game_mode: ��Ϸģʽ������ο� [�˴�](https://dota2api.readthedocs.io/en/latest/responses.html#game-mode)���������У�
-    + 1=ȫ��Ӫ
-    + 2=�ӳ�ģʽ
-    + 3=�������
-    + 4=��������
-    + 5=ȫ��Ӫ���
-    + 12=����ģʽ
-    + 18=���ģ�ͣ����ܣ�
-    + 20=ȫ��Ӫ����ģʽ
-    + 21=��·1��1
-    + 22=��λȫ��Ӫ
-* flags: δ֪
+* radiant_win: 天辉是否获胜，1=是, 0=否
+* duration: 比赛总时长，以秒计
+* pre_game_duration: 正式比赛前准备时长
+* start_time: 游戏开始时间，Unix 时间形式，下面例子里有时间转化方法
+* match_id: 比赛 ID
+* match_seq_num: 比赛序列号，该编号按比赛开始时间呈次序排列
+* tower_status_radiant: 天辉防御塔状态，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#towers-and-barracks)
+* tower_status_dire: 夜魇防御塔状态，具体同上
+* barracks_status_radiant: 天辉兵营状态，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#towers-and-barracks)
+* barracks_status_dire: 夜魇兵营塔状态，具体同上
+* first_blood_time: 一血时间
+* lobby_type: 游戏大厅，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#lobby-type)，常见的有：
+    + 0=公共比赛
+    + 1=练习，但所有职业比赛都在这一类里
+    + 4=与AI合作/对战，就是所谓的打电脑
+    + 7=排位赛，就是所谓的天梯
+    + 8=单人比赛，主要用于中路1对1
+* human_players: 非机器人的玩家数量
+* leagueid: 联赛 ID，0=一般比赛
+* positive_votes: “喜欢”投票
+* negative_votes: “不喜欢”投票
+* game_mode: 游戏模式，具体参考 [此处](https://dota2api.readthedocs.io/en/latest/responses.html#game-mode)，常见的有：
+    + 1=全阵营
+    + 2=队长模式
+    + 3=随机征召
+    + 4=个别征召
+    + 5=全阵营随机
+    + 12=生疏模式
+    + 18=随机模型（技能）
+    + 20=全阵营死亡模式
+    + 21=中路1对1
+    + 22=排位全阵营
+* flags: 未知
 * engine: 0=source1, 1=source 2
-* radiant_score: ��Ի�ɱ��
-* dire_score: ҹ�ʻ�ɱ��
+* radiant_score: 天辉击杀数
+* dire_score: 夜魇击杀数
 
 ```{r, message=FALSE, warning=FALSE}
 match_normal <- get_match_details(match_id = 3170508667)$content
@@ -158,74 +158,74 @@ unlist(match_normal[-1])
 as.POSIXct(match_normal$start_time, origin = '1970-01-01', tz = 'GMT')
 ```
 
-ְҵ���������б������������������Щ��Ϣ�⣬������֧�Ծ�ս�ӵ���Ϣ���Լ��б���34��Ԫ�ذ����� Ban/Pick ��ϸ��Ϣ��
-����ȡ4�����޽�������һ������Ϊ����ף��B��
+职业联赛返回列表更长，除了上面的这些信息外，还有两支对决战队的信息，以及列表第34个元素包含的 Ban/Pick 详细信息。
+这里取4月亚洲锦标赛的一场决赛为例。祝贺B神！
 
 ```{r, message=FALSE, warning=FALSE}
 match_league <- get_match_details(match_id = 3097027819)$content
 unlist(match_league[-c(1, 34)])
 ```
 
-����б�������ֵ�ĵ�һ��Ԫ�أ�����10��Ԫ�أ���Ӧ10����ң�ǰ5������ԣ���5����ҹ�ʡ�������ĳһ����ҵľ�����Ϣ��������ѡӢ�ۣ���Ʒ������ɱ/����/����������������Ǯ����ÿ���ӣ�����˺�/���Ƶȡ���30��Ԫ���ǹ��ڼ����������б���
+玩家列表（返回值的第一个元素）包含10个元素，对应10个玩家，前5个是天辉，后5个是夜魇。下面是某一个玩家的具体信息，包括所选英雄，物品栏，击杀/死亡/助攻，正反补，金钱经验每分钟，造成伤害/治疗等。第30个元素是关于技能升级的列表。
 
 ```{r, message=FALSE, warning=FALSE}
 unlist(match_league$players[[1]][-30])
 ```
 
-ֵ��ע����ǣ�`player_slot` ��һ�����趨���ǿ�������1��5��λ�ģ�����ʵ���в�û���õ���0��4Ϊ��ԣ�128��132Ϊҹ�ʣ���Ұ�������Ϸ�������С�
+值得注意的是，`player_slot` 这一栏在设定上是可以区分1到5号位的，但是实际中并没有用到，0到4为天辉，128到132为夜魇，玩家按进入游戏次序排列。
 
 ```
-�������������������������������� 0=��� 1=ҹ��
-�� �����Щ��Щ��Щ������������� û��
-�� �� �� �� �� �����Щ��Щ� �����е�1��5��λ (0-4)
+┌─────────────── 0=天辉 1=夜魇
+│ ┌─┬─┬─┬─────── 没用
+│ │ │ │ │ ┌─┬─┬─ 队伍中的1到5号位 (0-4)
 0 0 0 0 0 0 0 0
 ```
 
-���Ͼ��� `get_match_details()` ���������з���ֵ��
-`get_match_history_by_sequence_num(start_at_match_seq_num, matches_requested)` �����ķ���ֵ��һģһ������ʽ��
-Ψһ�Ĳ�ͬ��������������Է��ضೡ��������ϸ��Ϣ���� `start_at_match_seq_num` ��ʼ���󷵻� `matches_requested` ��������
-ע�������������������к� match_seq_num���ñ�Ű�������ʼʱ��ʴ������С�����1����������ܷ���100����������Ϣ��
+以上就是 `get_match_details()` 函数的所有返回值。
+`get_match_history_by_sequence_num(start_at_match_seq_num, matches_requested)` 函数的返回值是一模一样的形式，
+唯一的不同就是这个函数可以返回多场比赛的详细信息，从 `start_at_match_seq_num` 开始往后返回 `matches_requested` 场比赛，
+注意这里必须输入比赛序列号 match_seq_num，该编号按比赛开始时间呈次序排列。另外1次请求最多能返回100场比赛的信息。
 
 ```{r, message=FALSE, warning=FALSE}
 match_multi <- get_match_history_by_sequence_num(start_at_match_seq_num=2769162669, matches_requested=10)$content
 c(match_multi$matches[[1]]$match_id, match_multi$matches[[10]]$match_id)
 ```
 
-��ʵ����һ�� get ���� `get_match_history()` ����ͨ�����벻ͬ�Ĳ������� game_mode ��ɸѡ���صı�����
-�����Ҳ���ʱ����Щ���������û����ȷ��ɸѡ���������ҷ��صı�����Ϣ̫���ԣ�ȱ�ٱ���ʤ����Ϣ���Ҿ�û�������������ȡ�������ݡ�
+其实还有一个 get 函数 `get_match_history()` 可以通过输入不同的参数例如 game_mode 来筛选返回的比赛。
+但在我测试时，有些输入参数并没有正确的筛选比赛，而且返回的比赛信息太简略，缺少比赛胜负信息，我就没有用这个函数提取比赛数据。
 
 
 
-## ������ȡ�ʹ���
+## 数据提取和处理
 
-### ȷ����ģĿ��
+### 确定建模目标
 
-���ݵ���ȡ��Ҫ�����ڽ�ģ��Ŀ�ģ������ģ�ͻش���ʲô���⡣
-Ԥ�����ʤ����һ��ֱ����ȷ��Ŀ�꣬���ǻ���Ҫ˼�����ǣ�ͨ����Щ��ϢԤ�����ʤ������ʲôʱ��Ԥ�����ʤ����
-������Ϸ֮ǰ��Ӣ��ѡ��֮�󣬻�������Ϸ���е��С����ǿ��������ҹ��˫���Ļ�ɱ����Ԥ�����ʤ����������Ҫע�����㣺���Ȼ�ɱ����������Ϸʱ����仯�ģ�
-��λ�ɱ�����ȵ�һ�����������ߵļ��ʻ�ʤ���ر�����Ϸ����β��ʱ����ɱ������һ���������ǻ�ʤ������Ȼ��������ڡ�
-�����Ҷ��û�ɱ����ģԤ��ʤ������Ȥ������
+数据的提取需要服务于建模的目的，即这个模型回答了什么问题。
+预测比赛胜负是一个直观明确的目标，但是还需要思考的是，通过哪些信息预测比赛胜负，在什么时候预测比赛胜负，
+进入游戏之前，英雄选择之后，或者是游戏进行当中。我们可以用天辉夜魇双方的击杀数来预测比赛胜负，但是需要注意两点：首先击杀数是随着游戏时间而变化的，
+其次击杀数领先的一方有显著更高的几率获胜，特别是游戏进入尾声时，击杀数领先一方几乎都是获胜方，虽然有例外存在。
+所以我对用击杀数建模预测胜负的兴趣并不大。
 
-Dota ����˵ MOBA ����Ϸ���Գ�ʢ��˥������������Ӣ�۵���ƣ����Ǹ�����ɫ�����ศ��ɣ���ͬ��Ӣ�۸�����ȫ��ͬ����Ϸ���顣
-������Ϊ Dota2 ��Ӣ����Ʋ��ܴӷḻ��ƽ�⣬������ɫ�ĽǶȿ���������ڵġ��� TI6 ����Ӣ�����ߴ�105���Ϳɼ�һ�ߣ����� Dota2 ��Ӣ�����ǣ�
-��ȥ����������ʱ�����ܲμ���ʽ������Ӣ�ۣ�����95%��Ӣ�۵����� TI ����̨������105ȡ10����ϣ�����һ���ӽ�3���ڵľ޴����֣�
-������ν�ģ�����봿��ͨ��Ӣ��ѡ����Ԥ�����ʤ����
+Dota 或者说 MOBA 类游戏可以长盛不衰的魅力就在于英雄的设计，他们各具特色，又相辅相成，不同的英雄给人完全不同的游戏体验。
+而我认为 Dota2 的英雄设计不管从丰富，平衡，还是特色的角度看都是最出众的。从 TI6 出场英雄数高达105个就可见一斑：现在 Dota2 总英雄数是，
+除去少数几个当时还不能参加正式联赛的英雄，超过95%的英雄登上了 TI 的舞台；考虑105取10的组合，这是一个接近3万亿的巨大数字！
+所以这次建模，我想纯粹通过英雄选择，来预测比赛胜负。
 
 
 
-### ������ȡ
+### 数据提取
 
-���ȣ�����ȡ��5000����Ϸ�Ļ�����Ϣ��Ϊ�˶Ա���������һ��ֱ�۵��˽⡣�õ��������Լ�д�� R ����
-�� [����](https://github.com/chengjunhou/Tutorial/blob/master/rdota2/dota2_data_query.R) ���ء�
-�÷���ָ��һ�� match_id �� `mid.a`������Ҫ��ȡ������������ `nnn`������ͻ��Զ��ҵ���Ӧ�� match_seq_num��Ȼ������ʼ��ȡ `nnn` ��������Ϣ��
-��������������Ϣ���ܵ�һ�� data.table ��������ڵ�ǰ�����ļ����µ�һ�� rds �ļ���RDSxxxxxx�����xxxxxx����Ϊ `mid.a`��
+首先，我提取了5000场游戏的基本信息，为了对比赛数据做一个直观的了解。用到的是我自己写的 R 程序，
+从 [这里](https://github.com/chengjunhou/Tutorial/blob/master/rdota2/dota2_data_query.R) 下载。
+用法是指定一条 match_id 给 `mid.a`，和想要提取比赛的总数给 `nnn`，程序就会自动找到对应的 match_seq_num，然后往后开始提取 `nnn` 条比赛信息。
+最后程序会把所有信息汇总到一个 data.table 里，并储存在当前工作文件夹下的一个 rds 文件“RDSxxxxxx”里，“xxxxxx”即为 `mid.a`。
 
-��Ϊ Steam ��������һ��ʱ���ڵ� API ���������߷��������������ƣ����岻������
-��`get_match_history_by_sequence_num()` ���������ֵ100����ȡ����ʱ���ܿ�ͻ���Ϊ�ﵽ���޶��޷���������Ҫ�ȴ�һ��ʱ���ٷ�������
-�������ҳ�����������1����ȡ���ݵ�������Ŀǰ��10��
-����������ȡЧ�ʻ����ԣ�10���������ʱһ��Сʱ��һ�㣬��Ȼ���������ٶȶ���ʱ�кܴ�Ӱ�졣
+因为 Steam 服务器对一段时间内的 API 访问数或者访问数据量有限制（具体不明），
+用`get_match_history_by_sequence_num()` 函数以最大值100条提取数据时，很快就会因为达到上限而无法继续，需要等待一段时间再发送请求。
+所以在我程序里设置了1次提取数据的数量，目前是10。
+总体数据提取效率还可以，10万条大概用时一个小时多一点，当然网络连接速度对用时有很大影响。
 
-�ص�֮ǰ5000�������������ǿ�һ����Ϸ������lobby_type������Ϸģʽ��game_mode���ķֲ���
+回到之前5000场的样本，我们看一下游戏大厅（lobby_type）和游戏模式（game_mode）的分布：
 
 ```{r, message=FALSE, warning=FALSE}
 library(data.table)
@@ -233,17 +233,17 @@ sample5k = readRDS("rds/5k_sample")
 table(sample5k$lobby, sample5k$gmode)
 ```
 
-���Կ����������Ϸ�������˹���������lobby_type=0������λ������lobby_type=7������λȫ��Ӫģʽ��game_mode=22���У�
-һ��ȫ��Ӫģʽ��game_mode=1��ֻ��������AI�ı����У�lobby_type=4����
-�� Ban/Pick �Ķӳ�ģʽ��game_mode=2��ֻ�������˹���������lobby_type=0������ϰ����lobby_type=1��������λ����lobby_type=7���У�
-����8����ϰ������������league_id>0�������⣬���е�10����ϰ����lobby_type=1������������league_id>0����
-��ģ����ֻ�����ˣ���λ����lobby_type=22����ȫ��ģʽ������ϰ���������Ķӳ�ģʽ��game_mode=2������Ϊ��Щ��������ߵı�������������������Ϸ�������
-ͬʱҪ��֤ÿ������������10λ��Ҳμӡ���Щɸѡ�������Ѿ��������ˣ����Ը�����Ҫ�����޸ġ�
+可以看到大多数游戏集中在了公共比赛（lobby_type=0）和排位比赛（lobby_type=7）的排位全阵营模式（game_mode=22）中，
+一般全阵营模式（game_mode=1）只出现在与AI的比赛中（lobby_type=4）。
+带 Ban/Pick 的队长模式（game_mode=2）只出现在了公共比赛（lobby_type=0），练习赛（lobby_type=1），和排位赛（lobby_type=7）中，
+且这8场练习赛都是联赛（league_id>0）。此外，所有的10场练习赛（lobby_type=1）都是联赛（league_id>0）。
+建模数据只包含了，排位赛（lobby_type=22）的全部模式，和练习赛即联赛的队长模式（game_mode=2），因为这些是质量最高的比赛，不大会出现消极游戏等情况。
+同时要保证每场比赛必须有10位玩家参加。这些筛选条件都已经包含在了，可以根据需要自行修改。
 
-Ϊ�˻�ý�ģ���ݣ���ѡ��5�����������Ƿֱ�����4��30�գ�4��24�գ�4��18�գ�4��12�գ���4��6�ա�
-Ȼ�������ȡ��10����������¼�����õ��Ļ����ظ�����Ϊһ������еı�����ԶԶ��������һ��ʼ�Ĳ²⡣ͬʱ�⼸��Ҳ�ܿ����ش�İ汾���¡�
-����ɸѡ��� rds �ļ��ҷ������� [����](https://github.com/chengjunhou/Tutorial/tree/master/rdota2)��
-����ĳ�����Զ�ȡ���ǣ�Ȼ�����Ƿֱ�һ��10�򳡱���ɸѡ��ʣ���٣��Լ����Ƿ����ڶ೤ʱ���
+为了获得建模数据，我选了5场联赛，它们分别发生在4月30日，4月24日，4月18日，4月12日，和4月6日。
+然后往后各取了10万条比赛记录，不用担心会有重复，因为一天里进行的比赛数远远超过了我一开始的猜测。同时这几天也避开了重大的版本更新。
+经过筛选后的 rds 文件我分享在了 [这里](https://github.com/chengjunhou/Tutorial/tree/master/rdota2)，
+下面的程序可以读取它们，然后我们分别看一下10万场比赛筛选后还剩多少，以及它们发生在多长时间里：
 
 ```{r, message=FALSE, warning=FALSE}
 mvec = c(3149572447, 3138232418, 3126514246, 3113809516, 3101804175)
@@ -257,24 +257,24 @@ sapply(dt, function(x) dim(x)[1])
 sapply(dt, function(x) max(x$st)-min(x$st)) / 3600
 ```
 
-10����ɸѡ��ʣ��4��࣬���ҷ�������3��6Сʱ�ڣ���Ȼ�м��������������кŵı�����û����ʽ��ʼ��
-�����ع���1Сʱ�����1�򳡱��������еġ�
-Ȼ��һ����Ϸʱ�������ӣ��ķֲ���
+10万条筛选后还剩下4万多，而且发生在了3到6小时内，虽然有极少量被赋予序列号的比赛并没有正式开始，
+但保守估计1小时里进行1万场比赛还是有的。
+然后画一下游戏时长（分钟）的分布：
 ```{r, message=FALSE, warning=FALSE}
 library(ggplot2)
 ggplot(dt[[1]], aes(duration/60)) + geom_histogram(aes(y = ..density..), binwidth=1)
 ```
 
 
-### ���ݴ���
+### 数据处理
 
 ```{r, message=FALSE, warning=FALSE}
 head(dt[[1]])
 ```
 
-����ȡ�������У���Ե�Ӣ��ѡ������ˡ�R1������R5����ҹ�����ǡ�D1������D5����
-���������1��5������1��5��λ���෴1��5֮�䲢û�д����ϵ����ʹ����֮���໥�������ݣ�Ҳ��Ӧ�öԽ�ģ������Ӱ�졣
-������Ҫ������Ĵ����һ���������ݡ��ڴ���֮ǰ��Ϸʱ������15���ӵı����ᱻ�޳���
+在提取的数据中，天辉的英雄选择放在了“R1”到“R5”，夜魇则是“D1”到“D5”。
+但是这里的1到5并不是1到5号位，相反1到5之间并没有次序关系，即使它们之间相互交换内容，也不应该对建模结果造成影响。
+所以需要用下面的代码近一步处理数据。在处理之前游戏时长少于15分钟的比赛会被剔除。
 
 ``` {r, message=FALSE, warning=FALSE}
 MRD = list()
@@ -306,45 +306,45 @@ for (i in 1:5) {
 head(MRD[[1]][,c(1,2,112,113,114,115,225,226)])
 ```
 
-���Կ�������֮������ݣ������Է�ѡ����Ϊ2��Ӣ�ۣ���ô��R2�����λ�þͻ�Ϊ1����֮Ϊ0��
-��Ȼ��ÿһ�У�һ������������Ӣ��ѡ���0/1������һ����10����Ϸ��������Ϸģʽ����Ϣ��Ҳ�ܽ���һ�£����� `gtype` �
-����֮���һ���������Ϸʱ������Ȼ�����Ϣ�ڱ�����ʼ֮ǰ�����ܻ�֪���� Dota2 ��Ӣ�۵�����������Ϸʱ�����ž޴�ı仯��
-��ͬӢ����ɵ����������Բ�ͬ��ǿ������ʱ�ڣ���ʤ�Ļ�������֮һ�����ڵ���ǿ��ʱ�ڱ�����ս���ڼ���ǿ��ʱ�ڽ���������
+可以看到处理之后的数据，如果天辉方选择编号为2的英雄，那么“R2”这个位置就会为1，反之为0。
+显然，每一行（一场比赛）代表英雄选择的0/1加起来一定是10。游戏大厅和游戏模式的信息我也总结了一下，放在 `gtype` 里。
+除此之外我还加入了游戏时长，虽然这个信息在比赛开始之前并不能获知，但 Dota2 里英雄的作用随着游戏时间有着巨大的变化。
+不同英雄组成的阵容有明显不同的强势弱势时期，获胜的基本策略之一就是在敌人强势时期避免作战，在己方强势时期结束比赛。
 
-���ڽ�ģ������ͺ������ˣ��Ա����������Ӣ��ѡ��ҹ��Ӣ��ѡ����Ϸģʽ��ʱ���������������Ƿ��ʤ��
-�����һ������1�����ݱ��2�������Ա���Ϊ�������ݣ������Ϊ�����Ƿ��ʤ��
-�����������������Ӣ������֮��Ŀ��ƹ�ϵ�Ͳ��ܷ�ӳ�����ˣ��������ա�
+现在建模的脉络就很清晰了，自变量包括天辉英雄选择，夜魇英雄选择，游戏模式和时长，因变量是天辉是否获胜。
+本来我还想过把1条数据变成2条，即自变量为己方阵容，因变量为己方是否获胜。
+但是如果这样处理，英雄阵容之间的克制关系就不能反映出来了，所以作罢。
 
 
 
-## ��ģ�����
+## 建模及结果
 
-����֮������� `MRD` �� ����ѡ����3����Ϊ��֤���ݣ�holdout�������ռ�����ݵ�20%���������Ϊѵ�����ݣ�train����
+处理之后的数据 `MRD` 中 ，我选出第3个作为验证数据（holdout），大概占总数据的20%，其余的作为训练数据（train）。
 
 ```{r, message=FALSE, warning=FALSE}
 mrd = rbind(MRD[[1]], MRD[[2]], MRD[[4]], MRD[[5]])
 vrd = MRD[[3]]
 ```
 
-�����ڽ�ģ֮ǰ�һ������һ�����ñȽ϶�Ԫ��binary������ģ�����ܵĲ��� AUC��area-under-curve����
+不过在建模之前我还想介绍一个常用比较二元（binary）分类模型性能的参数 AUC（area-under-curve）。
 
 
-### ģ�����ܲ��� AUC
+### 模型性能参数 AUC
 
-������Ƿ��ʤ������һ�����͵Ķ�Ԫ�������⣬��������ȷ�����������������Ԥ������������һЩ���⡣
-����˵100����¼���ʵ�ġ��ǡ���Yes/1����20�������񡱣�No/0����80������ô��ʹ���ǲ����κ�Ԥ�⣬ֱ�ӱ������100����¼Ϊ���񡱣�Ҳ��80%����ȷ�ʡ�
-��ʱ��ʵ���ǡ��ﱻ�����ȷ�ı�����true-positive-rate��Ϊ0%����ʵ�����ﱻ��Ǵ���ı���ҲΪ��false-positive-rate��0%��
-���������м�¼Ϊ���ǡ�����ô�����������ֱ�Ϊ100%��100%��
-��һ��������ģ�ͣ�����ȷ���20�����ǡ���¼��80�����񡱼�¼������� true-positive-rate Ϊ100%��false-positive-rate Ϊ0%��
+“天辉是否获胜”就是一个典型的二元分类问题，可以用正确率来衡量这类问题的预测结果，但存在一些问题。
+比如说100条记录里，真实的“是”（Yes/1）有20条，“否”（No/0）有80条。那么即使我们不做任何预测，直接标记所有100条记录为“否”，也有80%的正确率。
+此时真实“是”里被标记正确的比例（true-positive-rate）为0%，真实“否”里被标记错误的比例也为（false-positive-rate）0%。
+如果标记所有记录为“是”，那么这两个比例分别为100%和100%。
+而一个完美的模型，即正确标记20条“是”记录和80条“否”记录，会给出 true-positive-rate 为100%，false-positive-rate 为0%。
 
-�������Զ�Ԫ���������ģ�͸�����Ԥ���Ǽ�¼Ϊ���ǡ��ĸ��ʣ���һ��0��1֮�������ֵ��
-��Ҫ��ģ��ָ��һ���ֽ�ֵ��Ԥ����ʴ������ֵ�ļ�¼�ᱻ���Ϊ���ǡ�����֮Ϊ���񡱡�
-�� AUC �����ľ��ǣ���Բ�ͬ�ķֽ�ֵ��ģ�;���������ȷ�ġ��ǡ�ͬʱ��������������
-AUC��area-under-curve������˼����������µ����������������Ϊ ROC ���ߵĻ��Ʒ����ǣ�
-�Ѽ�¼��Ԥ����ʴӴ�С���У�ÿ��Ԥ�������Ϊ�ֽ�ֵʱ��������֮��Ӧ�� true-positive-rate �� false-positive-rate��
-�� false-positive-rate ��Ϊ���ᣬtrue-positive-rate ��Ϊ������Ƶ㣬���ɵõ� ROC ���ߡ�
-����Ԥ����ʴӴ�С����Ϊ(0.92, 0.87, 0.76, 0.73, 0.68, 0.67, 0.64, 0.55, 0.43, 0.39)��
-��ʵֵΪ(1, 1, 1, 1, 0, 0, 1, 0, 0, 0), ��Ӧ�� ROC Ϊ�±���ͼ��
+大多数针对二元分类问题的模型给出的预测是记录为“是”的概率，是一个0和1之间的连续值。
+需要建模者指定一个分界值，预测概率大于这个值的记录会被标记为“是”，反之为“否”。
+而 AUC 描述的就是，针对不同的分界值，模型尽早挑出正确的“是”同时避免错误的能力。
+AUC（area-under-curve）顾名思义就是曲线下的面积，而这条被称为 ROC 曲线的绘制方法是：
+把记录按预测概率从大到小排列，每个预测概率作为分界值时都会有与之对应的 true-positive-rate 和 false-positive-rate，
+以 false-positive-rate 作为横轴，true-positive-rate 作为纵轴绘制点，即可得到 ROC 曲线。
+比如预测概率从大到小排列为(0.92, 0.87, 0.76, 0.73, 0.68, 0.67, 0.64, 0.55, 0.43, 0.39)，
+真实值为(1, 1, 1, 1, 0, 0, 1, 0, 0, 0), 相应的 ROC 为下边左图：
 
 ```{r, message=FALSE, warning=FALSE}
 library(ROCR)
@@ -357,20 +357,20 @@ plot(roc1, type="o")
 plot(roc2, type="o")
 ```
 
-��ͼ�ǰ���50%���Ԥ��ʱ�� ROC����¼�����֮����� ROC �ͱ�Ϊһ�����ߣ��ұ� ROC ����(0, 0)��(1, 1)�ĶԽ��ߡ�
-�����������ģ�ͣ���ô ROC ���(0, 0)ֱ��������(1, 0)����������(1, 1)��
-����ģ�� ROC �µ������������߳�Ϊ1�������ε���������ģ�� ROC ���Խ���֮�µ����Ϊ0.5������һ��ģ�� AUC ��0.5��1֮�䡣
-�򵥽���ģ�� AUC ��0.8���ϼ�����Ϊ�����൱�õ�Ԥ�����ܣ�0.6��0.8֮����ζ�����ݾ���һ���Ŀ�Ԥ���ԡ�
-ûʲôԤ��������ģ�� AUC ��ӽ�0.5���������С��0.5���������Ӧ�����ڴ������ݻ��߽�ģ��ʱ�����˴���
+右图是按照50%随机预测时的 ROC。记录点多了之后，左边 ROC 就变为一条曲线，右边 ROC 就是(0, 0)到(1, 1)的对角线。
+如果是完美的模型，那么 ROC 会从(0, 0)直接上升到(1, 0)，再向右至(1, 1)。
+完美模型 ROC 下的面积就是这个边长为1的正方形的面积，随机模型 ROC 即对角线之下的面积为0.5，所以一般模型 AUC 在0.5和1之间。
+简单讲，模型 AUC 在0.8以上即被认为具有相当好的预测性能，0.6到0.8之间意味着数据具有一定的可预测性。
+没什么预测能力的模型 AUC 会接近0.5，如果遇到小于0.5的情况，那应该是在处理数据或者建模的时候发生了错误。
 
 
-### naiveBayes ģ��
+### naiveBayes 模型
 
-�����Ҿ����� naiveBayes ģ�ͳ���ֻ��Ӣ����Ϣ��ģ��naiveBayes �ĺ��ľ����������ʣ����ȼ���ѵ����������Ի�ʤ��������ʣ�
-Ȼ�������Ի�ʤʱ��Ӣ�۵ķֲ�����������������ʵõ�ѡ���⼸��Ӣ��ʱ��Ի�ʤ�ĸ��ʡ�
-ģ���ص��Ǽ򵥣����õ����κβ����������׹���ϣ�����Ч�ʸߡ������ı�����/��з������汻֤ʵЧ�����ǲ����ģ�
-Dota2 Ӣ�۵�����ֻ��124��1ƪ����������ص���/�ʿɾͶ��ˣ���Ҫһ����Ч���㷨������Щ��Ϣ��
-����Ĵ��������� naiveBayes ģ����ϣ�Ȼ��ֱ�Ԥ�� train �� holdout ������ AUC�� 
+首先我决定用 naiveBayes 模型尝试只用英雄信息建模。naiveBayes 的核心就是条件概率：首先计算训练数据里天辉获胜的总体概率，
+然后计算天辉获胜时各英雄的分布情况，再由条件概率得到选了这几个英雄时天辉获胜的概率。
+模型特点是简单，不用调试任何参数，不容易过拟合，计算效率高。它在文本分析/情感分析方面被证实效果还是不错的：
+Dota2 英雄的数量只有124，1篇文章里面独特的字/词可就多了，需要一个高效的算法处理这些信息。
+下面的代码就完成了 naiveBayes 模型拟合，然后分别预测 train 和 holdout 并计算 AUC。 
 
 ```{r, eval=FALSE}
 library(e1071)
@@ -389,21 +389,21 @@ c(train=performance(roc_trY, measure="auc")@y.values[[1]],
   holdout=performance(roc_ooY, measure="auc")@y.values[[1]])
 ```
 
-���Կ������� AUC �ǳ��ӽ���˵����ȫû�й���ϡ�
-���� ACU �ӽ�0.6������Ӣ��ѡ��Ա���ʤ���������൱Ӱ��ġ�
+可以看到两个 AUC 非常接近，说明完全没有过拟合。
+而且 ACU 接近0.6，表明英雄选择对比赛胜负还是有相当影响的。
 
 
-### gradient-boosting-machine ģ��
+### gradient-boosting-machine 模型
 
-Ȼ���Ҿ����������Ӧ�ֵ� gradient-boosting-machine��GBM��ģ�ͣ���������Ϣ���н�ģ�� 
-GBM �ĺ�������״ģ�ͣ�tree-based model�������� random forest ���Ĳ�ͬ�����ڣ�
-random forest ��ÿһ����������Զ����ģ��� GBM �ĵ�����״ģ���ǻ�����һ��������Ͻ���������ģ���һ���������̡�
-��һ�����ࣨclassification��GBM ���������У���ǰ����ģ�ͻἯ�й�ע��ɹ�����ģ�ͷ����������ݣ�Ŀ����Ǹ���һ�����ģ��Ԥ���׼ȷ�ȡ�
-���ʹ�� GBM �������԰Ѻ���ģ��Ԥ��������һЩָ���Ƶ�һ���ǳ��ߵĳ̶ȣ������ںܶཨģ������ε�ͷ�
-GBM ����������Ǻ����׷���������ϣ�over-fitting����������Ҫ����������ϲ�����
+然后我决定用最得心应手的 gradient-boosting-machine（GBM）模型，对所有信息进行建模。 
+GBM 的核心是树状模型（tree-based model），它与 random forest 最大的不同就在于，
+random forest 里每一个树都是相对独立的，而 GBM 的单个树状模型是基于上一个树的拟合结果而建立的，是一个渐进过程。
+在一个分类（classification）GBM 迭代过程中，当前的树模型会集中关注造成过往树模型分类错误的数据，目标就是更进一步提高模型预测的准确度。
+这就使得 GBM 往往可以把衡量模型预测能力的一些指标推到一个非常高的程度，让它在很多建模比赛里拔得头筹。
+GBM 最大的问题就是很容易发生过度拟合（over-fitting），所以需要反复调试拟合参数。
 
-��ģ�õ� R package xgboost������������õ���� GBM ��������R/Python/Java���и��԰汾���ص����ṩ�˷ǳ���ɹ����ԵĲ��������Ч�ʸߡ�
-ģ�Ͳ���ͨ��������֤�����õ�������Ĺ��̾Ͳ������ˣ�����ֻ����������Ĳ�����
+建模用到 R package xgboost，是现在最好用的拟合 GBM 软件包，R/Python/Java都有各自版本，特点是提供了非常多可供调试的参数，拟合效率高。
+模型参数通过交叉验证调整得到，具体的过程就不介绍了，这里只给出调整后的参数：
 
 ```{r, eval=FALSE}
 library(xgboost)
@@ -437,12 +437,12 @@ c(train=performance(roc_trY, measure="auc")@y.values[[1]],
   holdout=performance(roc_ooY, measure= "auc")@y.values[[1]])
 ```
 
-���Կ��� train AUC ���Ը��� holdout AUC��˵������һЩ����ϡ�
-����ʵ�� GBM ��ģ�����ٶ������һЩ����ϣ�ֻҪ�������ʱ holdout AUC û��������Ȼ��ʼ�����½����Ƕ��ǿ��Խ��ܵġ�
-ͬʱ holdout AUC �ﵽ��0.65����֮ǰ��������������Ϊģ�͸�����Ԥ������Ի�ʤ�ĸ��ʣ�������Ҫָ��һ���ֽ�ֵ��������Щ��������Ԥ��Ϊ���ʤ����
-������������Ի�ʤ���ʣ�53.6%���Ը���ҹ�ʣ�46.4%��������0.5��Ϊ�ֽ�ֵ�ǲ���������ʵġ�
-���ǿ����� train Ԥ��ֵ�ϵ����ֽ�ֵ��Ŀ������� train �ϵ�Ԥ����ȷ�ʡ�
-������ķֽ�ֵΪ0.51����ʱ train ����ȷ����66.4%��holdout ����ȷ����60.5%��
+可以看到 train AUC 明显高于 holdout AUC，说明存在一些过拟合。
+但其实用 GBM 建模或多或少都会存在一些过拟合，只要迭代拟合时 holdout AUC 没有先上升然后开始明显下降，那都是可以接受的。
+同时 holdout AUC 达到了0.65，比之前有明显提升。因为模型给出的预测是天辉获胜的概率，所以需要指定一个分界值，决定哪些比赛可以预测为天辉胜利。
+这批数据里天辉获胜几率（53.6%）略高于夜魇（46.4%），所以0.5作为分解值是并不是最合适的。
+我们可以在 train 预测值上调整分界值，目标是最大化 train 上的预测正确率。
+调整后的分界值为0.51，此时 train 上正确率是66.4%，holdout 上正确率是60.5%。
 
 ```{r, message=FALSE, warning=FALSE}
 # train actual win rate
@@ -452,11 +452,11 @@ confmx = as.matrix(table(ooY>=0.51, vrd[,232])/length(ooY))
 confmx[1,1] + confmx[2,2]
 ```
 
-Ȼ�󻹿�����ȡģ�͵ı�����Ҫ�����С������������ǰ�еļ���������
-��һ���Ǳ������ڶ��� `Gain` ��ָ�ñ�����ģ�ʹ�����ȷ��������ռ�ȣ�
-`Cover` �� `Frequency` �ֱ�ָ���������ṹģ���У��ɸñ������ֵ�����ռ�ȣ��ͱ���ʹ�ô���ռ�ȡ�
-���Կ�������Ϸʱ�������е�һ�ı����������϶�����Ӣ��ѡ���໥�������ã�interaction�������ģ��Ԥ�������ġ�
-֮��ı����Ͷ���Ӣ��ѡ���ˣ���Ȥ���ǣ����иߵ�Ӣ�۶��ǳɶԳ��ֵģ�˵�����Ƕ�ģ��Ԥ������������������ȶ��ģ������ڳ�������Է�����ҹ�ʷ���
+然后还可以提取模型的变量重要度排行。下面给出排行前列的几个变量。
+第一列是变量，第二列 `Gain` 是指该变量给模型带来正确率提升的占比，
+`Cover` 和 `Frequency` 分别指在所有树结构模型中，由该变量区分的数据占比，和变量使用次数占比。
+可以看到，游戏时长是排行第一的变量，但它肯定是与英雄选择相互发生作用（interaction）来提高模型预测能力的。
+之后的变量就都是英雄选择了，有趣的是，排行高的英雄都是成对出现的，说明他们对模型预测能力的提高作用是稳定的，不管在出现在天辉方还是夜魇方。
 
 ```{r, eval=FALSE}
 imp.mat <- xgb.importance(feature_names=colnames(mrd), model=xgb_tr)
@@ -466,10 +466,10 @@ imp.mat[1:19, ]
 readRDS("rds/imp.mat")[1:19,]
 ```
 
-���������ǿ�һ����ЩӢ�۶���˭�ɡ��з�ʦ���Ĺ���������ھ�Ȼ��ͷ������
-��������������ߣ������ʥ��˹���ˣ��������⣬���ݱ������ѡ����Ӧ�ö��Ǿ���ɡ�
-ֵ��һ����ǣ����ѿ�������ĳ��Ӣ�۶Ա���ʤ�������滹�Ǹ������ã���Ϊ��ģ���еı������ǻ���Ӱ���ŷ������õġ�
-����˵�����ߺ��������ʤ�ʺܸߣ����������ͬʱ���ֵз�ʦ���Ĺ��ǻ����ͱ���Ӯ�ˡ�
+接着让我们看一下这些英雄都是谁吧。敌法师，幽鬼，两大后期竟然是头两名。
+后面出现了祈求者，齐天大圣，斯拉克，并不意外，天梯比赛里敢选出来应该都是绝活吧。
+值得一提的是，很难看出单独某个英雄对比赛胜负是正面还是负面作用，因为树模型中的变量都是互相影响着发挥作用的。
+比如说祈求者和力丸搭配胜率很高，如果队伍中同时出现敌法师和幽鬼那基本就别想赢了。
 
 ```{r, message=FALSE, warning=FALSE}
 sapply(c(1, 67, 74, 114, 93, 36, 42, 2, 32), 
@@ -477,19 +477,19 @@ sapply(c(1, 67, 74, 114, 93, 36, 42, 2, 32),
 ```
 
 ![](https://cloud.githubusercontent.com/assets/11251354/26287702/050bbea6-3e4f-11e7-900c-4f2aa4ab1a35.JPG)  
-����������������
+还是祈求者最上相
 
 
-### ģ�ͽ���ܽ�
+### 模型总结
 
-�Ҷ�ģ��0.65�� AUC�����Ը���60%����ȷ�ʻ�������ġ�
-��Ϊ����Ӣ��ѡ��Ӱ��һ������ʤ��������ʵ��̫���ˣ��е�������������Ϸ֮�⡣
-���ѡ��ĳ����Ӣ�۾��кܴ���Ӯ�ñ�������ôֻ��˵�����Ϸ��Ӣ����������о޴�����ģ���ϷҲ����ȱ�ٵ���������ζ��
-֮ǰ������һƪ���±Ƚ��� Dota2 ��Ӣ�����˵Ĳ�ͬ�������ᵽ�� Dota2 ��ͼ�����λ����˵���Դ��� lol�������ͼͬʱҲ��ζ�Ÿ��������
-ͬʱ Dota2 �����ӵ���Ұ���ƣ���Ʒ��Ұ�ֵȵȣ��������������˸���Ĳ�ȷ�����ء�
-����������Ӣ�����˶����ɧ�ľ���֮һ�����ڶ���Ϸ���̵ľ�׼���գ�ʲôʱ��ø�ʲô����ȷ���룬����Щ���������һ�����ȶ���ϵͳ��
-��� Dota2����һ�׾Ͳ���ô��ʹ�ˣ����Ժ���ս���� Dota2 ������һֱ����֧�й����黨ʽ����
+我对模型0.65的 AUC，和略高于60%的正确率还是满意的。
+因为除了英雄选择，影响一场比赛胜负的因素实在太多了，有的甚至发生在游戏之外。
+如果选了某几个英雄就有很大几率赢得比赛，那么只能说这个游戏在英雄设计上是有巨大问题的，游戏也会因缺少跌宕起伏而乏味。
+之前看到过一篇文章比较了 Dota2 和英雄联盟的不同，里面提到了 Dota2 地图从相对位移来说明显大于 lol，更大地图同时也意味着更多变数。
+同时 Dota2 更复杂的视野机制，物品，野怪等等，都给比赛增加了更多的不确定因素。
+而韩国人在英雄联盟独领风骚的诀窍之一就在于对游戏进程的精准把握，什么时间该干什么都精确到秒，但这些都必须基于一个较稳定的系统。
+面对 Dota2，这一套就不那么好使了，所以韩国战队在 Dota2 比赛里一直被各支中国队伍花式吊打。
 
-���ǻ���˵��������ϷԽ���ӣ��ƹ�������Խ�����ס����ˣ����¾͵��˽�����
-����д��ƪ���µ�ʱ��ͳ��֮�������廪�ٰ��ʮ���й�R�ᡣ��������Ҳ�������࣬����ףͳ��֮��Խ��Խ�ã�Ҳ�ڴ������˵ļ��룡
+但是话又说回来，游戏越复杂，推广起来就越不容易。好了，文章就到此结束。
+在我写这篇文章的时候，统计之都正在清华举办第十届中国R会。我在这里也获益良多，所以祝统计之都越办越好，也期待更多人的加入！
 
