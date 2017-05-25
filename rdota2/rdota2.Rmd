@@ -378,7 +378,7 @@ plot(roc2, type="o")
 
 ### naiveBayes 模型
 
-首先我决定用 naiveBayes 模型尝试只用英雄信息建模。naiveBayes 的核心是条件概率：首先计算训练数据里天辉获胜的总体概率，
+首先我决定用 naiveBayes 模型尝试只用英雄选择信息建模。naiveBayes 的核心是条件概率：首先计算训练数据里天辉获胜的总体概率，
 然后计算天辉获胜时各英雄的分布情况，再由条件概率得到选了某几个英雄时天辉获胜的概率。
 模型特点是简单，不用调试任何参数，不容易过拟合，计算效率高。它在文本分析/情感分析方面被证实效果还是不错的：
 Dota2 英雄的数量只有124，1篇文章里面独特的字/词数可就多了，需要一个高效的算法处理这些信息。
@@ -415,19 +415,98 @@ random forest 里每一个树都是相对独立的，而 GBM 的单个树状模�
 GBM 最大的问题就是很容易发生过度拟合（over-fitting），所以需要反复调试拟合参数。
 
 建模用到 R package `xgboost`，是现在最好用的拟合 GBM 软件包，R/Python/Java都有各自版本，特点是提供了非常多可供调试的参数，拟合效率高。
-模型参数通过交叉验证调整得到，具体的过程就不介绍了，这里只给出调整后的参数：
+首先考虑不包括游戏时长，只用英雄选择和游戏模式作为自变量建模。
+模型参数通过交叉验证调整得到，具体的过程就不介绍了，这里只给出调整后的参数，
+此时树模型的特点是低复杂度（`max.depth=2`），高数量（`nrounds=256`）：
 
 ```{r, eval=FALSE}
 library(xgboost)
 xgb_params_1 = list(
   objective = "binary:logistic",             # binary classification
   eta = 0.42,                                # learning rate
-  max.depth = 6,                             # max tree depth
+  max.depth = 2,                             # max tree depth
+  eval_metric = "error"                      # evaluation/loss metric
+)
+xgb_tr = xgboost(data = mrd[,-c(231,232)], label = mrd[,232],
+                 params = xgb_params_1,
+                 nrounds = 256,              # max number of trees
+                 early_stopping_rounds = 12, # stop if no improvement
+                 nthread = 8,
+                 verbose = TRUE,                                         
+                 print_every_n = 1
+)
+trY = predict(xgb_tr, mrd[,-c(231,232)])
+roc_trY = prediction(trY, mrd[,232])
+ooY = predict(xgb_tr, vrd[,-c(231,232)])
+roc_ooY = prediction(ooY, vrd[,232])
+c(train = performance(roc_trY, measure="auc")@y.values[[1]],
+  holdout = performance(roc_ooY, measure="auc")@y.values[[1]])
+```
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+trY <- readRDS("rds/trY1")
+ooY <- readRDS("rds/ooY1")
+roc_trY <- prediction(trY, mrd[,232])
+roc_ooY <- prediction(ooY, vrd[,232])
+c(train=performance(roc_trY, measure="auc")@y.values[[1]],
+  holdout=performance(roc_ooY, measure= "auc")@y.values[[1]])
+```
+
+可以看到 train AUC 明显高于 holdout AUC，说明存在一些过拟合。
+但其实用 GBM 建模或多或少都会存在一些过拟合，只要拟合迭代时 holdout error 没有先下降然后开始明显上升，那都是可以接受的。
+同时 holdout AUC 达到了0.622，比之前 naiveBayes 模型有明显提升。
+因为模型给出的预测是天辉获胜的概率，所以需要指定一个分界值，决定哪些比赛可以预测为天辉胜利。
+这批数据里天辉获胜几率（53.6%）略高于夜魇（46.4%），所以0.5作为分解值是并不是最合适的。
+我们可以在 train 预测值上调整分界值，目标是最大化 train 上的预测正确率。
+调整后的分界值为0.507，此时 train 上正确率是60.7%，holdout 上正确率是59.2%。
+
+```{r, message=FALSE, warning=FALSE}
+# train actual win rate
+table(mrd[,232])/length(trY)
+# holdout prediction accuracy
+confmx = as.matrix(table(ooY>=0.507, vrd[,232])/length(ooY))
+confmx[1,1] + confmx[2,2]
+```
+
+然后还可以提取模型变量的重要度排行。下面给出排行前列的几个变量。
+第一列是变量，第二列 `Gain` 是指该变量给模型带来正确率提升的占比，
+`Cover` 和 `Frequency` 分别指在所有树结构模型中，由该变量区分的数据占比，和变量使用次数占比。
+可以看到代表同一个英雄出现在天辉（例如`R67`）或者夜魇（例如`D67`）的变量，同时出现在重要度排行的前列，
+说明这些英雄对模型预测能力的提高作用是稳定的，不管他们出现在天辉方还是夜魇方。
+
+```r
+imp.mat <- xgb.importance(feature_names=colnames(mrd[,-c(231,232)]), model=xgb_tr)
+imp.mat[1:18, ]
+```
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+readRDS("rds/imp.mat")[1:18,]
+```
+
+接着让我们看一下这些英雄都是谁吧。敌法师，幽鬼，两大后期是头两名。
+之后出现了祈求者，齐天大圣，斯拉克，并不意外，天梯比赛里敢选出来应该都是绝活吧。
+需要注意的是，这个排名针对的是变量在模型中的预测能力，
+这里很难分析出单独某个英雄对比赛胜负是正面还是负面作用，因为树模型中的变量都是互相影响着发挥作用的。
+比如说祈求者和力丸搭配胜率很高，如果队伍中同时出现敌法师和幽鬼那基本就别想赢了。
+另外还有游戏时长这个重要变量，敌法师和幽鬼这种大后期的胜率是随着游戏时长增加而显著提高的。
+
+```{r, message=FALSE, warning=FALSE}
+sapply(c(67, 2, 114, 42, 32, 44, 36, 5, 22), 
+       function(x) hero.df$localized_name[hero.df$id==x])
+```
+
+然后游戏时长被加入到自变量中，重新建模。这里除了 `max.depth` 和 `nrounds` 之外，其他的参数与之前相同：
+
+
+```{r, eval=FALSE}
+library(xgboost)
+xgb_params_1 = list(
+  objective = "binary:logistic",             # binary classification
+  eta = 0.42,                                # learning rate
+  max.depth = 3,                             # max tree depth
   eval_metric = "error"                      # evaluation/loss metric
 )
 xgb_tr = xgboost(data = mrd[,-232], label = mrd[,232],
                  params = xgb_params_1,
-                 nrounds = 68,               # max number of trees
+                 nrounds = 290,              # max number of trees
                  early_stopping_rounds = 12, # stop if no improvement
                  nthread = 8,
                  verbose = TRUE,                                         
@@ -441,41 +520,33 @@ c(train = performance(roc_trY, measure="auc")@y.values[[1]],
   holdout = performance(roc_ooY, measure="auc")@y.values[[1]])
 ```
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
-trY <- readRDS("rds/trY")
-ooY <- readRDS("rds/ooY")
-roc_trY <- prediction(readRDS("rds/trY"), mrd[,232])
-roc_ooY <- prediction(readRDS("rds/ooY"), vrd[,232])
+trY <- readRDS("rds/trY2")
+ooY <- readRDS("rds/ooY2")
+roc_trY <- prediction(trY, mrd[,232])
+roc_ooY <- prediction(ooY, vrd[,232])
 c(train=performance(roc_trY, measure="auc")@y.values[[1]],
   holdout=performance(roc_ooY, measure= "auc")@y.values[[1]])
 ```
 
-可以看到 train AUC 明显高于 holdout AUC，说明存在一些过拟合。
-但其实用 GBM 建模或多或少都会存在一些过拟合，只要拟合迭代时 holdout error 没有先下降然后开始明显上升，那都是可以接受的。
-同时 holdout AUC 达到了0.65，比之前有明显提升。因为模型给出的预测是天辉获胜的概率，所以需要指定一个分界值，决定哪些比赛可以预测为天辉胜利。
-这批数据里天辉获胜几率（53.6%）略高于夜魇（46.4%），所以0.5作为分解值是并不是最合适的。
-我们可以在 train 预测值上调整分界值，目标是最大化 train 上的预测正确率。
-调整后的分界值为0.51，此时 train 上正确率是66.4%，holdout 上正确率是60.5%。
+加入游戏时长这个变量后，模型 AUC 又有了明显提升。
+同样的，分界值定为0.498，此时 train 上正确率是64.5%，holdout 上正确率是61.4%。
 
 ```{r, message=FALSE, warning=FALSE}
-# train actual win rate
-table(mrd[,232])/length(trY)
 # holdout prediction accuracy
-confmx = as.matrix(table(ooY>=0.51, vrd[,232])/length(ooY))
+confmx = as.matrix(table(ooY>=0.498, vrd[,232])/length(ooY))
 confmx[1,1] + confmx[2,2]
 ```
 
-然后还可以提取模型的变量重要度排行。下面给出排行前列的几个变量。
-第一列是变量，第二列 `Gain` 是指该变量给模型带来正确率提升的占比，
-`Cover` 和 `Frequency` 分别指在所有树结构模型中，由该变量区分的数据占比，和变量使用次数占比。
-可以看到，游戏时长是排行第一的变量，但它肯定是与英雄选择相互发生作用（interaction）来提高模型预测能力的。
-之后的变量就都是英雄选择了，有趣的是，排行高的几个英雄都是成对出现的，说明他们对模型预测能力的提高作用是稳定的，不管在出现在天辉方还是夜魇方。
+下面是变量重要度排行。
+可以看到，游戏时长现在是以绝对优势处于排行的首位，但它肯定是与英雄选择相互发生作用（interaction）来提高模型预测能力的。
+然后英雄同时出现的情况依旧很明显，而且大多数之前模型里排名靠前的英雄依旧表现出色：
 
 ```{r, eval=FALSE}
-imp.mat <- xgb.importance(feature_names=colnames(mrd), model=xgb_tr)
+imp.mat <- xgb.importance(feature_names=colnames(mrd[,-232]), model=xgb_tr)
 imp.mat[1:19, ]
 ```
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
-readRDS("rds/imp.mat")[1:19,]
+readRDS("rds/dmp.mat")[1:20,]
 ```
 
 接着让我们看一下这些英雄都是谁吧。敌法师，幽鬼，两大后期是头两名。
@@ -497,7 +568,7 @@ sapply(c(1, 67, 74, 114, 93, 36, 42, 2, 32),
 ### 模型总结
 
 除了上述模型，我还试了 python 的深度学习 package Keras，效果并不理想。
-GBM 模型0.65的 AUC，和略高于60%的正确率还是让人满意的。
+GBM 模型0.66的 AUC，和略高于61%的正确率还是让人满意的。
 因为除了英雄选择，影响一场比赛胜负的因素实在太多了，有的甚至发生在游戏之外。
 如果选了某几个英雄就有很大几率赢得比赛，那么只能说这个游戏在英雄设计上是有巨大问题的，游戏也会因缺少跌宕起伏而乏味。
 之前看到过一篇文章比较了 Dota2 和英雄联盟的不同，里面提到了 Dota2 地图从相对位移来说明显大于 lol，更大地图意味着更多变数。
