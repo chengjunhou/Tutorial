@@ -496,9 +496,7 @@ sapply(c(67, 2, 114, 42, 32, 44, 36, 5, 22),
 
 然后游戏时长被加入到自变量中，重新建模。这里除了 `max.depth` 和 `nrounds` 之外，其他的参数与之前相同：
 
-
 ```{r, eval=FALSE}
-library(xgboost)
 xgb_params_1 = list(
   objective = "binary:logistic",             # binary classification
   eta = 0.42,                                # learning rate
@@ -544,7 +542,7 @@ confmx[1,1] + confmx[2,2]
 
 ```{r, eval=FALSE}
 imp.mat <- xgb.importance(feature_names=colnames(mrd[,-232]), model=xgb_tr)
-imp.mat[1:19, ]
+imp.mat[1:20, ]
 ```
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 readRDS("rds/dmp.mat")[1:20,]
@@ -558,7 +556,7 @@ readRDS("rds/dmp.mat")[1:20,]
 另外还有游戏时长这个重要变量，敌法师和幽鬼这种大后期的胜率是随着游戏时长增加而显著提高的。
 
 ```{r, message=FALSE, warning=FALSE}
-sapply(c(1, 67, 74, 114, 93, 36, 42, 2, 32), 
+sapply(c(1, 67, 74, 114, 93, 2, 42, 32, 44), 
        function(x) hero.df$localized_name[hero.df$id==x])
 ```
 
