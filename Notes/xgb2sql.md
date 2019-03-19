@@ -160,6 +160,17 @@ The SQL query performing one-hot encoding for the raw table is:
 
 
 ```r
+df <- data.frame(ggplot2::diamonds)
+df <- df[, c(2,5,6,7)]
+head(df)
+#>         cut depth table price
+#> 1     Ideal  61.5    55   326
+#> 2   Premium  59.8    61   326
+#> 3      Good  56.9    65   327
+#> 4   Premium  62.4    58   334
+#> 5      Good  63.3    58   335
+#> 6 Very Good  62.8    57   336
+out <- onehot2sql(df)
 cat(out$sql)
 #> SELECT ROW_KEY, [depth], [table], [price], 
 #> (case when [cut] IS NULL then NULL when [cut] = 'Fair' then 1 else 0 end) AS [cut_Fair], 
