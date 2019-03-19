@@ -374,36 +374,36 @@ booster2sql(bst, output_file_name='xgb.txt')
 
 ```r
 cat(readChar('xgb.txt', file.info('xgb.txt')$size))
-#> SELECT  ROW_KEY , 0.5 + SUM(ONETREE) AS XGB_PRED
-#> FROM (   
-#>  SELECT ROW_KEY ,
-#>  (CASE WHEN [table] < 57.1500015 THEN 
-#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
-#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
-#>   WHEN  [table] IS NULL THEN 968.065552 END)
-#>   WHEN  [table] >= 57.1500015 THEN 
-#>  (CASE WHEN [depth] < 62.0499992 THEN 1324.505
-#>   WHEN  [depth] >= 62.0499992 THEN 1418.64978
-#>   WHEN  [depth] IS NULL THEN 1324.505 END)
-#>   WHEN  [table] IS NULL THEN 
-#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
-#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
-#>   WHEN  [table] IS NULL THEN 968.065552 END) END) AS ONETREE FROM  MODREADY_TABLE 
-#>  UNION ALL 
-#>  
-#>  SELECT ROW_KEY ,
-#>  (CASE WHEN [table] < 57.1500015 THEN 
-#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
-#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
-#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END)
-#>   WHEN  [table] >= 57.1500015 THEN 
-#>  (CASE WHEN [cut_Ideal] < 0.5 THEN 942.305908
-#>   WHEN  [cut_Ideal] >= 0.5 THEN 1127.849
-#>   WHEN  [cut_Ideal] IS NULL THEN 942.305908 END)
-#>   WHEN  [table] IS NULL THEN 
-#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
-#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
-#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END) END) AS ONETREE FROM  MODREADY_TABLE   
+#> SELECT  ROW_KEY , 0.5 + SUM(ONETREE) AS XGB_PRED
+#> FROM (   
+#>  SELECT ROW_KEY ,
+#>  (CASE WHEN [table] < 57.1500015 THEN 
+#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
+#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
+#>   WHEN  [table] IS NULL THEN 968.065552 END)
+#>   WHEN  [table] >= 57.1500015 THEN 
+#>  (CASE WHEN [depth] < 62.0499992 THEN 1324.505
+#>   WHEN  [depth] >= 62.0499992 THEN 1418.64978
+#>   WHEN  [depth] IS NULL THEN 1324.505 END)
+#>   WHEN  [table] IS NULL THEN 
+#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
+#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
+#>   WHEN  [table] IS NULL THEN 968.065552 END) END) AS ONETREE FROM  MODREADY_TABLE 
+#>  UNION ALL 
+#>  
+#>  SELECT ROW_KEY ,
+#>  (CASE WHEN [table] < 57.1500015 THEN 
+#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
+#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
+#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END)
+#>   WHEN  [table] >= 57.1500015 THEN 
+#>  (CASE WHEN [cut_Ideal] < 0.5 THEN 942.305908
+#>   WHEN  [cut_Ideal] >= 0.5 THEN 1127.849
+#>   WHEN  [cut_Ideal] IS NULL THEN 942.305908 END)
+#>   WHEN  [table] IS NULL THEN 
+#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
+#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
+#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END) END) AS ONETREE FROM  MODREADY_TABLE   
 #> ) AS TREES_TABLE GROUP BY  ROW_KEY
 ```
 
@@ -452,52 +452,52 @@ booster2sql(bst, output_file_name='onehot-xgb.txt', input_onehot_query=out$sql)
 
 ```r
 cat(readChar('onehot-xgb.txt', file.info('onehot-xgb.txt')$size))
-#> SELECT  ROW_KEY , 0.5 + SUM(ONETREE) AS XGB_PRED
-#> FROM (   
-#>  SELECT ROW_KEY ,
-#>  (CASE WHEN [table] < 57.1500015 THEN 
-#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
-#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
-#>   WHEN  [table] IS NULL THEN 968.065552 END)
-#>   WHEN  [table] >= 57.1500015 THEN 
-#>  (CASE WHEN [depth] < 62.0499992 THEN 1324.505
-#>   WHEN  [depth] >= 62.0499992 THEN 1418.64978
-#>   WHEN  [depth] IS NULL THEN 1324.505 END)
-#>   WHEN  [table] IS NULL THEN 
-#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
-#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
-#>   WHEN  [table] IS NULL THEN 968.065552 END) END) AS ONETREE FROM  ( 
-#> SELECT ROW_KEY, [depth], [table], [price], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Fair' then 1 else 0 end) AS [cut_Fair], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Good' then 1 else 0 end) AS [cut_Good], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Very Good' then 1 else 0 end) AS [cut_VeryGood], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Premium' then 1 else 0 end) AS [cut_Premium], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Ideal' then 1 else 0 end) AS [cut_Ideal] 
-#> FROM INPUT_TABLE 
-#> ) AS MODREADY_TABLE  
-#>  UNION ALL 
-#>  
-#>  SELECT ROW_KEY ,
-#>  (CASE WHEN [table] < 57.1500015 THEN 
-#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
-#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
-#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END)
-#>   WHEN  [table] >= 57.1500015 THEN 
-#>  (CASE WHEN [cut_Ideal] < 0.5 THEN 942.305908
-#>   WHEN  [cut_Ideal] >= 0.5 THEN 1127.849
-#>   WHEN  [cut_Ideal] IS NULL THEN 942.305908 END)
-#>   WHEN  [table] IS NULL THEN 
-#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
-#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
-#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END) END) AS ONETREE FROM  ( 
-#> SELECT ROW_KEY, [depth], [table], [price], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Fair' then 1 else 0 end) AS [cut_Fair], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Good' then 1 else 0 end) AS [cut_Good], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Very Good' then 1 else 0 end) AS [cut_VeryGood], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Premium' then 1 else 0 end) AS [cut_Premium], 
-#> (case when [cut] IS NULL then NULL when [cut] = 'Ideal' then 1 else 0 end) AS [cut_Ideal] 
-#> FROM INPUT_TABLE 
-#> ) AS MODREADY_TABLE    
+#> SELECT  ROW_KEY , 0.5 + SUM(ONETREE) AS XGB_PRED
+#> FROM (   
+#>  SELECT ROW_KEY ,
+#>  (CASE WHEN [table] < 57.1500015 THEN 
+#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
+#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
+#>   WHEN  [table] IS NULL THEN 968.065552 END)
+#>   WHEN  [table] >= 57.1500015 THEN 
+#>  (CASE WHEN [depth] < 62.0499992 THEN 1324.505
+#>   WHEN  [depth] >= 62.0499992 THEN 1418.64978
+#>   WHEN  [depth] IS NULL THEN 1324.505 END)
+#>   WHEN  [table] IS NULL THEN 
+#>  (CASE WHEN [table] < 56.0499992 THEN 968.065552
+#>   WHEN  [table] >= 56.0499992 THEN 1165.19592
+#>   WHEN  [table] IS NULL THEN 968.065552 END) END) AS ONETREE FROM  ( 
+#> SELECT ROW_KEY, [depth], [table], [price], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Fair' then 1 else 0 end) AS [cut_Fair], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Good' then 1 else 0 end) AS [cut_Good], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Very Good' then 1 else 0 end) AS [cut_VeryGood], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Premium' then 1 else 0 end) AS [cut_Premium], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Ideal' then 1 else 0 end) AS [cut_Ideal] 
+#> FROM INPUT_TABLE 
+#> ) AS MODREADY_TABLE  
+#>  UNION ALL 
+#>  
+#>  SELECT ROW_KEY ,
+#>  (CASE WHEN [table] < 57.1500015 THEN 
+#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
+#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
+#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END)
+#>   WHEN  [table] >= 57.1500015 THEN 
+#>  (CASE WHEN [cut_Ideal] < 0.5 THEN 942.305908
+#>   WHEN  [cut_Ideal] >= 0.5 THEN 1127.849
+#>   WHEN  [cut_Ideal] IS NULL THEN 942.305908 END)
+#>   WHEN  [table] IS NULL THEN 
+#>  (CASE WHEN [cut_Premium] < 0.5 THEN 703.048096
+#>   WHEN  [cut_Premium] >= 0.5 THEN 1059.96741
+#>   WHEN  [cut_Premium] IS NULL THEN 703.048096 END) END) AS ONETREE FROM  ( 
+#> SELECT ROW_KEY, [depth], [table], [price], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Fair' then 1 else 0 end) AS [cut_Fair], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Good' then 1 else 0 end) AS [cut_Good], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Very Good' then 1 else 0 end) AS [cut_VeryGood], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Premium' then 1 else 0 end) AS [cut_Premium], 
+#> (case when [cut] IS NULL then NULL when [cut] = 'Ideal' then 1 else 0 end) AS [cut_Ideal] 
+#> FROM INPUT_TABLE 
+#> ) AS MODREADY_TABLE    
 #> ) AS TREES_TABLE GROUP BY  ROW_KEY
 ```
 
