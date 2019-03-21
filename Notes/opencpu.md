@@ -38,5 +38,20 @@ opencpu::ocpu_start_server()
 curl http://localhost:5656/ocpu/library/tvscore/R/tv/json \
   -H "Content-Type: application/json" \
   -d '{"input" : [ {"age":26, "marital" : "MARRIED"}, {"age":41, "marital":"DIVORCED"} ]}'
+#> {
+#>   "age": 26,
+#>   "marital": "MARRIED",
+#>   "tv": 2.9504
+#> },
+#> {
+#>   "age": 41,
+#>   "marital": "DIVORCED",
+#>   "tv": 2.6154
+#> },
+#> {
+#>   "age": 53,
+#>   "marital": "NEVER MARRIED",
+#>   "tv": 3.1082
+#> }
 ```
 
