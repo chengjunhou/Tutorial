@@ -47,11 +47,6 @@ curl http://localhost:5656/ocpu/library/tvscore/R/tv/json \
 #>   "age": 41,
 #>   "marital": "DIVORCED",
 #>   "tv": 2.6154
-#> },
-#> {
-#>   "age": 53,
-#>   "marital": "NEVER MARRIED",
-#>   "tv": 3.1082
 #> }
 ```
 
