@@ -29,13 +29,13 @@ opencpu::ocpu_start_server()
 
 ```r
 mydata <- data.frame(
-  age=c(24, 54, 32, 75),
+  age=c(26, 41, 32, 75),
   marital=c("MARRIED", "DIVORCED", "WIDOWED", "NEVER MARRIED")
 )
 tvscore::tv(input = mydata)
 #>   age       marital       tv
-#> 1  24       MARRIED 3.172029
-#> 2  54      DIVORCED 3.594100
+#> 1  24       MARRIED 2.950362
+#> 2  54      DIVORCED 2.615384
 #> 3  32       WIDOWED 2.288877
 #> 4  75 NEVER MARRIED 2.846717
 ```
