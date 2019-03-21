@@ -19,19 +19,25 @@ tv <- function(input){
 ```
 
 ```r
-# Score in R
-mydata <- data.frame(
-  age=c(24, 54, 32, 75),
-  marital=c("MARRIED", "DIVORCED", "WIDOWED", "NEVER MARRIED")
-)
-tvscore::tv(input = mydata)
-
 # Start the single-user development server
 opencpu::ocpu_start_server()
 #> [2019-03-21 13:46:07] OpenCPU single-user server, version 2.1.1
 #> [2019-03-21 13:46:07] Starting 2 new worker(s). Preloading: opencpu, lattice
 #> [2019-03-21 13:46:08] READY to serve at: http://localhost:5656/ocpu
 #> [2019-03-21 13:46:08] Press ESC or CTRL+C to quit!
+```
+
+```r
+mydata <- data.frame(
+  age=c(24, 54, 32, 75),
+  marital=c("MARRIED", "DIVORCED", "WIDOWED", "NEVER MARRIED")
+)
+tvscore::tv(input = mydata)
+#>   age       marital       tv
+#> 1  24       MARRIED 3.172029
+#> 2  54      DIVORCED 3.594100
+#> 3  32       WIDOWED 2.288877
+#> 4  75 NEVER MARRIED 2.846717
 ```
 
 ```
