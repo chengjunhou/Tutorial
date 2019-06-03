@@ -62,7 +62,7 @@ LASSO回归 $\alpha=1$，Ridge回归 $\alpha=0$，一般Elastic Net模型 $0<\al
 所以此时的连接函数（link function）就是恒等，或者说没有连接函数，而误差的函数分布是正态分布。
 
 首先我们装载 **glmnet** package，然后读入试验用数据"LinearExample.RData"，
-[下载链接](https://github.com/chengjunhou/Tutorial/raw/master/LASSO/LinearExample.RData)：
+[下载链接](https://github.com/chengjunhou/Tutorial/raw/master/lasso/LinearExample.RData)：
 
 ```{r, message=FALSE, warning=FALSE}
 library(glmnet)
@@ -171,7 +171,7 @@ plot(pfit, xvar="lambda", label = TRUE)
 此时我们用 `family="binomial"` 来应对这种目标因变量是二项分布（binomial）的情况。
 
 试验用数据 "LogisticExample.RData" 里储存了 $100 \times 30$ 的矩阵 $x$ ，和元素是0/1长度是100的向量 $y$，
-[下载链接](https://github.com/chengjunhou/Tutorial/raw/master/LASSO/LogisticExample.RData)：
+[下载链接](https://github.com/chengjunhou/Tutorial/raw/master/lasso/LogisticExample.RData)：
 
 ```{r}
 load("LogisticExample.RData")
